@@ -17,7 +17,6 @@
             overflow: hidden;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 260px;
             background: linear-gradient(180deg, #1A472A, #2E6B3F);
@@ -48,12 +47,11 @@
             transform: translateX(8px);
             font-weight: 600;
         }
-
         .admin-only { display: none; }
 
         .content {
             flex: 1;
-            padding: 60px 20px;
+            padding: 60px 30px;
             overflow-y: auto;
         }
 
@@ -61,10 +59,10 @@
             background: white;
             padding: 40px 35px;
             border-radius: 24px;
-            width: 1120px;
-            max-width: 100%;
-            box-shadow: 0 20px 50px rgba(26, 71, 42, 0.15);
+            width: 100%;
+            max-width: 1150px;
             margin: 0 auto;
+            box-shadow: 0 20px 50px rgba(26, 71, 42, 0.15);
         }
 
         .back-link {
@@ -77,7 +75,6 @@
             margin-bottom: 25px;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.3s;
         }
         .back-link:hover { color: #1A472A; }
 
@@ -88,18 +85,14 @@
             font-size: 26px;
         }
 
-        .form-container, .search-box {
-            opacity: 1; /* Form và search box luôn hiện ngay */
-        }
-
         .form-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 14px;
             background: #f4f9f6;
-            padding: 24px;
+            padding: 28px;
             border-radius: 16px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             border: 1px solid #e0f0e4;
         }
         input {
@@ -126,21 +119,25 @@
         }
         .add { background: linear-gradient(135deg, #1A472A, #2E6B3F); color: white; }
         .add:hover { background: linear-gradient(135deg, #2E6B3F, #1A472A); transform: translateY(-2px); }
+
         .reset { background: #64748b; color: white; }
+        .reset:hover { background: #475569; }
+
         .export-excel { background: linear-gradient(135deg, #1A472A, #2E6B3F); color: white; }
 
         .search-box {
             display: flex;
             gap: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             justify-content: center;
             flex-wrap: wrap;
         }
         .search-box input {
-            width: 420px;
+            width: 460px;
             padding: 14px 16px;
             border: 1px solid #d1e0d7;
             border-radius: 12px;
+            font-size: 15px;
         }
 
         .table-wrapper { overflow-x: auto; }
@@ -155,49 +152,61 @@
         th, td { 
             padding: 16px 12px; 
             text-align: center;
-            font-size: 15.2px;
-            line-height: 1.5;
+            font-size: 15px;
         }
         th {
             background: linear-gradient(135deg, #1A472A, #2E6B3F);
             color: white;
-            cursor: pointer;
             font-weight: 600;
-            font-size: 15.5px;
+            cursor: pointer;
         }
         th:hover { background: #3a8a5a; }
-
         tr:nth-child(even) { background: #f8fbf9; }
         tr:hover { background: #f0f9f4; }
 
         /* Nút Sửa & Xóa đẹp */
         .action-btn {
-            padding: 8px 14px;
-            margin: 0 4px;
+            padding: 9px 16px;
+            margin: 0 5px;
             border: none;
             border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
-        .edit-btn  { background: #2E6B3F; color: white; }
-        .edit-btn:hover  { background: #1A472A; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,71,42,0.3); }
-        .delete-btn { background: #ef4444; color: white; }
-        .delete-btn:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239,68,68,0.4); }
+        .edit-btn { background: #2E6B3F; color: white; }
+        .edit-btn:hover { background: #1A472A; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26,71,42,0.4); }
 
-        /* ================== HIỆU ỨNG ẢO DIỆU KHI CUỘN ================== */
-        .row-reveal {
+        .delete-btn { background: #ef4444; color: white; }
+        .delete-btn:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(239,68,68,0.4); }
+
+        /* Reveal effect */
+        .reveal {
             opacity: 0;
-            transform: translateY(45px) scale(0.98);
-            transition: all 900ms cubic-bezier(0.25, 0.1, 0.25, 1);
+            transform: translateY(40px);
+            transition: all 800ms cubic-bezier(0.25, 0.1, 0.25, 1);
         }
-        .row-reveal.visible {
+        .reveal.visible {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1A472A;
+            color: white;
+            padding: 15px 26px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(26, 71, 42, 0.35);
+            display: none;
+            z-index: 10000;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -215,27 +224,27 @@
         <a href="index.html" class="back-link">⬅ Quay lại Trang chủ</a>
         <h2 class="card-title">📊 Quản lý tồn kho - Mỹ phẩm</h2>
 
-        <form class="form-container" onsubmit="themSanPham(); return false;">
+        <form class="form-container reveal" onsubmit="themSanPham(); return false;">
             <input type="text" id="mahang" placeholder="Mã hàng *" maxlength="20" required>
             <input type="text" id="ten" placeholder="Tên sản phẩm *" required>
             <input type="text" id="nsx" placeholder="Nơi sản xuất">
             <input type="text" id="ncc" placeholder="Nhà cung cấp">
-            <input type="text" id="qc" placeholder="Quy cách (ví dụ: 500g, 1.5kg, 250ml)" style="min-width: 220px;">
+            <input type="text" id="qc" placeholder="Quy cách (ví dụ: 500g, 1.5kg, 250ml)">
             <input type="number" id="soluong" placeholder="Số lượng *" min="0" step="0.001" required>
             <input type="number" id="shelflife" placeholder="Shelf Life (tháng)" min="1">
-            <input type="date" id="manufacture" placeholder="Ngày sản xuất">
-            <input type="date" id="retest" placeholder="Retest Date">
+            <input type="date" id="manufacture">
+            <input type="date" id="retest">
 
             <button class="add" type="submit">➕ Lưu sản phẩm</button>
             <button class="reset" type="button" onclick="resetForm()">🔄 Làm mới</button>
         </form>
 
-        <div class="search-box">
+        <div class="search-box reveal">
             <input type="text" id="search" placeholder="🔍 Tìm kiếm mã hàng, tên sản phẩm...">
             <button class="export-excel" onclick="xuatExcel()">📊 Xuất Excel</button>
         </div>
 
-        <div class="table-wrapper">
+        <div class="table-wrapper reveal">
             <table>
                 <thead>
                     <tr>
@@ -260,7 +269,6 @@
 <div id="toast"></div>
 
 <script>
-
 let danhSach = JSON.parse(localStorage.getItem("mypham")) || [];
 let editIndex = -1;
 let sortDirection = {};
@@ -278,65 +286,52 @@ function hienThi(filter = "") {
     const bang = document.getElementById("bang");
     bang.innerHTML = "";
 
-    let filteredList = danhSach.filter(sp => {
-        const text = (sp.mahang + " " + sp.ten + " " + (sp.nsx || "") + " " + (sp.ncc || "")).toLowerCase();
-        return text.includes(filter.toLowerCase());
+    let list = danhSach.filter(sp => {
+        const txt = (sp.mahang + " " + sp.ten + " " + (sp.nsx||"") + " " + (sp.ncc||"")).toLowerCase();
+        return txt.includes(filter.toLowerCase());
     });
 
-    const sortedCol = Object.keys(sortDirection)[0];
-    if (sortedCol) {
-        const colIndex = parseInt(sortedCol);
-        const dir = sortDirection[sortedCol];
-        filteredList.sort((a, b) => {
-            let valA = Object.values(a)[colIndex] || "";
-            let valB = Object.values(b)[colIndex] || "";
-            if (!isNaN(valA) && !isNaN(valB)) return dir * (parseFloat(valA) - parseFloat(valB));
-            return dir * String(valA).localeCompare(String(valB));
+    // Sắp xếp
+    const col = Object.keys(sortDirection)[0];
+    if (col) {
+        const idx = parseInt(col);
+        const dir = sortDirection[col];
+        list.sort((a,b) => {
+            let va = Object.values(a)[idx] || "";
+            let vb = Object.values(b)[idx] || "";
+            if (!isNaN(va) && !isNaN(vb)) return dir * (parseFloat(va) - parseFloat(vb));
+            return dir * String(va).localeCompare(String(vb));
         });
     }
 
-    filteredList.forEach((sp) => {
-        const idx = danhSach.findIndex(item => item === sp);
-        let nccNsx = sp.ncc && sp.nsx ? `${sp.ncc} - ${sp.nsx}` : (sp.ncc || sp.nsx || '-');
+    list.forEach(sp => {
+        const i = danhSach.indexOf(sp);
+        const nccNsx = sp.ncc && sp.nsx ? `${sp.ncc} - ${sp.nsx}` : (sp.ncc || sp.nsx || '-');
 
         bang.innerHTML += `
-            <tr class="row-reveal">
-                <td>${idx + 1}</td>
+            <tr class="reveal">
+                <td>${i+1}</td>
                 <td><strong>${sp.mahang}</strong></td>
                 <td><strong>${sp.ten}</strong></td>
                 <td>${nccNsx}</td>
                 <td>${sp.qc || '-'}</td>
-                <td><strong>${parseFloat(sp.soluong).toFixed(3).replace(/\.?0+$/, '')}</strong></td>
+                <td><strong>${parseFloat(sp.soluong).toFixed(3).replace(/\.?0+$/,'')}</strong></td>
                 <td>${sp.shelflife ? sp.shelflife + ' tháng' : '-'}</td>
                 <td>${sp.manufacture || '-'}</td>
                 <td>${sp.retest || '-'}</td>
                 <td>
-                    <button onclick="suaSanPham(${idx})" class="action-btn edit-btn">✏️ Sửa</button>
-                    <button onclick="xoaSanPham(${idx})" class="action-btn delete-btn">🗑️ Xóa</button>
+                    <button onclick="suaSanPham(${i})" class="action-btn edit-btn">✏️ Sửa</button>
+                    <button onclick="xoaSanPham(${i})" class="action-btn delete-btn">🗑️ Xóa</button>
                 </td>
             </tr>`;
     });
 
-    // Kích hoạt hiệu ứng ảo diệu khi cuộn
-    triggerRowReveal();
-}
-
-function triggerRowReveal() {
-    const rows = document.querySelectorAll('#bang tr.row-reveal');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, index) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.classList.add('visible');
-                }, index * 80); // stagger tạo cảm giác ảo diệu
-            }
+    // Reveal effect cho hàng
+    setTimeout(() => {
+        document.querySelectorAll('#bang tr.reveal').forEach((el, idx) => {
+            setTimeout(() => el.classList.add('visible'), idx * 50);
         });
-    }, {
-        threshold: 0.15,
-        rootMargin: "0px 0px -50px 0px"
-    });
-
-    rows.forEach(row => observer.observe(row));
+    }, 80);
 }
 
 function themSanPham() {
@@ -345,46 +340,49 @@ function themSanPham() {
     const nsx = document.getElementById("nsx").value.trim();
     const ncc = document.getElementById("ncc").value.trim();
     const qc = document.getElementById("qc").value.trim();
-    const soluong = parseFloat(document.getElementById("soluong").value);
+    const soluongStr = document.getElementById("soluong").value;
 
-    if (!mahang || !ten || isNaN(soluong)) {
+    if (!mahang || !ten || !soluongStr) {
         showToast("Vui lòng nhập đầy đủ Mã hàng, Tên sản phẩm và Số lượng!", "#ef4444");
         return;
     }
 
-    const sanpham = {
-        mahang, ten, nsx, ncc, qc, soluong,
+    const soluong = parseFloat(soluongStr);
+
+    const sp = {
+        mahang, ten, nsx, ncc, qc,
+        soluong,
         shelflife: document.getElementById("shelflife").value.trim() || null,
         manufacture: document.getElementById("manufacture").value || null,
         retest: document.getElementById("retest").value || null
     };
 
     if (editIndex >= 0) {
-        danhSach[editIndex] = sanpham;
+        danhSach[editIndex] = sp;
         showToast("✅ Đã cập nhật sản phẩm thành công!");
         editIndex = -1;
     } else {
-        danhSach.push(sanpham);
+        danhSach.push(sp);
         showToast("✅ Đã thêm sản phẩm vào kho!");
     }
 
     luuLocal();
-    hienThi(document.getElementById("search").value);
+    hienThi(document.getElementById("search").value);   // ← Đây là dòng quan trọng nhất
     resetForm();
 }
 
-function xoaSanPham(index) {
-    if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
-        danhSach.splice(index, 1);
+function xoaSanPham(i) {
+    if (confirm("Xóa sản phẩm này?")) {
+        danhSach.splice(i, 1);
         luuLocal();
         hienThi(document.getElementById("search").value);
         showToast("🗑️ Đã xóa sản phẩm!");
     }
 }
 
-function suaSanPham(index) {
-    editIndex = index;
-    const sp = danhSach[index];
+function suaSanPham(i) {
+    editIndex = i;
+    const sp = danhSach[i];
     document.getElementById("mahang").value = sp.mahang;
     document.getElementById("ten").value = sp.ten;
     document.getElementById("nsx").value = sp.nsx || "";
@@ -394,8 +392,7 @@ function suaSanPham(index) {
     document.getElementById("shelflife").value = sp.shelflife || "";
     document.getElementById("manufacture").value = sp.manufacture || "";
     document.getElementById("retest").value = sp.retest || "";
-
-    showToast("✏️ Đang chỉnh sửa sản phẩm...", "#3b82f6");
+    showToast("✏️ Đang chỉnh sửa...", "#3b82f6");
 }
 
 function resetForm() {
@@ -416,27 +413,24 @@ function timKiemRealTime() {
 }
 
 function xuatExcel() {
-    if (danhSach.length === 0) {
-        showToast("Không có dữ liệu để xuất!", "#ef4444");
-        return;
-    }
+    if (danhSach.length === 0) return showToast("Không có dữ liệu!", "#ef4444");
     const wb = XLSX.utils.book_new();
-    const wsData = danhSach.map((sp, i) => ({
-        "STT": i + 1,
+    const data = danhSach.map((sp,i) => ({
+        STT: i+1,
         "Mã hàng": sp.mahang,
         "Tên sản phẩm": sp.ten,
-        "Nhà cung cấp": sp.ncc || "",
-        "Nơi sản xuất": sp.nsx || "",
-        "Quy cách": sp.qc || "",
+        "Nhà cung cấp": sp.ncc||"",
+        "Nơi sản xuất": sp.nsx||"",
+        "Quy cách": sp.qc||"",
         "Số lượng": sp.soluong,
-        "Shelf Life (tháng)": sp.shelflife || "",
-        "Manufacture Date": sp.manufacture || "",
-        "Retest Date": sp.retest || ""
+        "Shelf Life": sp.shelflife||"",
+        "Manufacture Date": sp.manufacture||"",
+        "Retest Date": sp.retest||""
     }));
-    const ws = XLSX.utils.json_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "Tồn kho Mỹ phẩm");
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "TonKho");
     XLSX.writeFile(wb, `TonKho_MyPham_${new Date().toISOString().slice(0,10)}.xlsx`);
-    showToast("📊 Đã xuất file Excel!");
+    showToast("📊 Đã xuất Excel!");
 }
 
 function sortTable(col) {
@@ -447,17 +441,24 @@ function sortTable(col) {
 }
 
 function showToast(msg, color = "#1A472A") {
-    const toast = document.getElementById("toast");
-    toast.textContent = msg;
-    toast.style.background = color;
-    toast.style.display = "block";
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => { toast.style.display = "none"; toast.style.opacity = "1"; }, 300);
-    }, 2500);
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.background = color;
+    t.style.display = "block";
+    setTimeout(() => { t.style.opacity = "0"; }, 2200);
+    setTimeout(() => { t.style.display = "none"; t.style.opacity = "1"; }, 2800);
 }
 
-// ====================== KHỞI TẠO ======================
+function initReveal() {
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach((e,i) => {
+            if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i*60);
+        });
+    }, {threshold: 0.1});
+
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
 window.onload = () => {
     checkAdmin();
     hienThi();
@@ -465,17 +466,20 @@ window.onload = () => {
     document.getElementById("mahang").addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
     document.getElementById("search").addEventListener("input", timKiemRealTime);
 
-    // Hiệu ứng vào trang cho card
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('reveal')); // đảm bảo có class
+
+    initReveal();
+
+    // Hiệu ứng card ban đầu
     const card = document.getElementById("mainCard");
     card.style.opacity = "0";
-    card.style.transform = "scale(0.94) translateY(40px)";
+    card.style.transform = "scale(0.95) translateY(30px)";
     setTimeout(() => {
-        card.style.transition = "all 850ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        card.style.transition = "all 0.85s cubic-bezier(0.25,0.46,0.45,0.94)";
         card.style.opacity = "1";
         card.style.transform = "scale(1) translateY(0)";
-    }, 50);
+    }, 100);
 };
 </script>
-
 </body>
 </html>
