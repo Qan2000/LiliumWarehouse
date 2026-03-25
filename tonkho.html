@@ -89,7 +89,6 @@
             font-size: 26px;
         }
 
-        /* Form & Search */
         .form-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -140,7 +139,6 @@
             border-radius: 12px;
         }
 
-        /* Bảng - Cỡ chữ đã điều chỉnh đẹp hơn */
         .table-wrapper { overflow-x: auto; }
         table {
             width: 100%;
@@ -153,7 +151,7 @@
         th, td { 
             padding: 16px 12px; 
             text-align: center;
-            font-size: 15.2px;           /* Tăng nhẹ cho dễ đọc */
+            font-size: 15.2px;
             line-height: 1.5;
         }
         th {
@@ -167,21 +165,15 @@
         tr:nth-child(even) { background: #f8fbf9; }
         tr:hover { background: #f0f9f4; }
 
-        /* Hiệu ứng nhẹ nhàng & ảo diệu khi cuộn */
+        /* Hiệu ứng nhẹ nhàng & ảo diệu */
         .reveal {
             opacity: 0;
             transform: translateY(35px);
             transition: all 800ms cubic-bezier(0.25, 0.1, 0.25, 1);
-            will-change: opacity, transform;
         }
         .reveal.visible {
             opacity: 1;
             transform: translateY(0);
-        }
-
-        /* Stagger cho từng hàng bảng - tạo cảm giác ảo diệu */
-        #bang tr {
-            transition: all 700ms cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
         #toast {
@@ -209,7 +201,7 @@
 
 <div class="content">
     <div class="card" id="mainCard">
-        <a href="index.html" class="back-link" id="backToHome">⬅ Quay lại Trang chủ</a>
+        <a href="index.html" class="back-link">⬅ Quay lại Trang chủ</a>
         <h2 class="card-title">📊 Quản lý tồn kho - Mỹ phẩm</h2>
 
         <form class="form-container reveal" onsubmit="themSanPham(); return false;">
@@ -264,9 +256,7 @@ let sortDirection = {};
 
 function checkAdmin() {
     const isAdmin = sessionStorage.getItem("isLoggedIn") === "true";
-    document.querySelectorAll('.admin-only').forEach(link => {
-        link.style.display = isAdmin ? "block" : "none";
-    });
+    document.querySelectorAll('.admin-only').forEach(link => link.style.display = isAdmin ? "block" : "none");
 }
 
 function luuLocal() {
@@ -274,14 +264,15 @@ function luuLocal() {
 }
 
 function hienThi(filter = "") {
-    let bang = document.getElementById("bang");
+    const bang = document.getElementById("bang");
     bang.innerHTML = "";
 
     let filteredList = danhSach.filter(sp => {
-        let text = (sp.mahang + " " + sp.ten + " " + (sp.nsx || "") + " " + (sp.ncc || "")).toLowerCase();
+        const text = (sp.mahang + " " + sp.ten + " " + (sp.nsx || "") + " " + (sp.ncc || "")).toLowerCase();
         return text.includes(filter.toLowerCase());
     });
 
+    // Sắp xếp nếu có
     const sortedCol = Object.keys(sortDirection)[0];
     if (sortedCol) {
         const colIndex = parseInt(sortedCol);
@@ -289,203 +280,4 @@ function hienThi(filter = "") {
         filteredList.sort((a, b) => {
             let valA = Object.values(a)[colIndex] || "";
             let valB = Object.values(b)[colIndex] || "";
-            if (!isNaN(valA) && !isNaN(valB)) {
-                return dir * (parseFloat(valA) - parseFloat(valB));
-            }
-            return dir * String(valA).localeCompare(String(valB));
-        });
-    }
-
-    filteredList.forEach((sp) => {
-        const originalIndex = danhSach.findIndex(item => item === sp);
-        
-        let nccNsx = '';
-        if (sp.ncc && sp.nsx) nccNsx = `${sp.ncc} - ${sp.nsx}`;
-        else if (sp.ncc) nccNsx = sp.ncc;
-        else if (sp.nsx) nccNsx = sp.nsx;
-        else nccNsx = '-';
-
-        bang.innerHTML += `
-            <tr class="reveal">
-                <td>${originalIndex + 1}</td>
-                <td><strong>${sp.mahang}</strong></td>
-                <td><strong>${sp.ten}</strong></td>
-                <td>${nccNsx}</td>
-                <td>${sp.qc || '-'}</td>
-                <td><strong>${parseFloat(sp.soluong).toFixed(3).replace(/\.?0+$/, '')}</strong></td>
-                <td>${sp.shelflife ? sp.shelflife + ' tháng' : '-'}</td>
-                <td>${sp.manufacture ? sp.manufacture : '-'}</td>
-                <td>${sp.retest ? sp.retest : '-'}</td>
-                <td>
-                    <button onclick="suaSanPham(${originalIndex})" style="background:#2E6B3F;color:white;margin-right:5px;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;">Sửa</button>
-                    <button onclick="xoaSanPham(${originalIndex})" style="background:#ef4444;color:white;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;">Xóa</button>
-                </td>
-            </tr>`;
-    });
-}
-
-function themSanPham() {
-    const mahang = document.getElementById("mahang").value.trim().toUpperCase();
-    const ten = document.getElementById("ten").value.trim();
-    const nsx = document.getElementById("nsx").value.trim();
-    const ncc = document.getElementById("ncc").value.trim();
-    const qc = document.getElementById("qc").value.trim();
-    const soluong = parseFloat(document.getElementById("soluong").value);
-    const shelflife = document.getElementById("shelflife").value.trim();
-    const manufacture = document.getElementById("manufacture").value;
-    const retest = document.getElementById("retest").value;
-
-    if (!mahang || !ten || isNaN(soluong)) {
-        showToast("Vui lòng nhập đầy đủ Mã hàng, Tên sản phẩm và Số lượng!", "#ef4444");
-        return;
-    }
-
-    const sanpham = { mahang, ten, nsx, ncc, qc, soluong, shelflife: shelflife || null, manufacture: manufacture || null, retest: retest || null };
-
-    if (editIndex >= 0) {
-        danhSach[editIndex] = sanpham;
-        showToast("✅ Đã cập nhật sản phẩm thành công!");
-        editIndex = -1;
-    } else {
-        danhSach.push(sanpham);
-        showToast("✅ Đã thêm sản phẩm vào kho!");
-    }
-
-    luuLocal();
-    hienThi(document.getElementById("search").value);
-    resetForm();
-}
-
-function xoaSanPham(index) {
-    if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
-        danhSach.splice(index, 1);
-        luuLocal();
-        hienThi(document.getElementById("search").value);
-        showToast("🗑️ Đã xóa sản phẩm!");
-    }
-}
-
-function suaSanPham(index) {
-    editIndex = index;
-    const sp = danhSach[index];
-    document.getElementById("mahang").value = sp.mahang;
-    document.getElementById("ten").value = sp.ten;
-    document.getElementById("nsx").value = sp.nsx || "";
-    document.getElementById("ncc").value = sp.ncc || "";
-    document.getElementById("qc").value = sp.qc || "";
-    document.getElementById("soluong").value = sp.soluong;
-    document.getElementById("shelflife").value = sp.shelflife || "";
-    document.getElementById("manufacture").value = sp.manufacture || "";
-    document.getElementById("retest").value = sp.retest || "";
-    showToast("✏️ Đang chỉnh sửa sản phẩm...", "#3b82f6");
-}
-
-function resetForm() {
-    document.getElementById("mahang").value = "";
-    document.getElementById("ten").value = "";
-    document.getElementById("nsx").value = "";
-    document.getElementById("ncc").value = "";
-    document.getElementById("qc").value = "";
-    document.getElementById("soluong").value = "";
-    document.getElementById("shelflife").value = "";
-    document.getElementById("manufacture").value = "";
-    document.getElementById("retest").value = "";
-    editIndex = -1;
-}
-
-function timKiemRealTime() {
-    hienThi(document.getElementById("search").value);
-}
-
-function xuatExcel() {
-    if (danhSach.length === 0) {
-        showToast("Không có dữ liệu để xuất!", "#ef4444");
-        return;
-    }
-    const wb = XLSX.utils.book_new();
-    const wsData = danhSach.map((sp, i) => ({
-        "STT": i + 1,
-        "Mã hàng": sp.mahang,
-        "Tên sản phẩm": sp.ten,
-        "Nhà cung cấp": sp.ncc || "",
-        "Nơi sản xuất": sp.nsx || "",
-        "Quy cách": sp.qc || "",
-        "Số lượng": sp.soluong,
-        "Shelf Life (tháng)": sp.shelflife || "",
-        "Manufacture Date": sp.manufacture || "",
-        "Retest Date": sp.retest || ""
-    }));
-    const ws = XLSX.utils.json_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "Tồn kho Mỹ phẩm");
-    XLSX.writeFile(wb, `TonKho_MyPham_${new Date().toISOString().slice(0,10)}.xlsx`);
-    showToast("📊 Đã xuất file Excel!");
-}
-
-function sortTable(col) {
-    const key = col.toString();
-    sortDirection = {};
-    sortDirection[key] = (sortDirection[key] === 1) ? -1 : 1;
-    hienThi(document.getElementById("search").value);
-}
-
-function showToast(msg, color = "#1A472A") {
-    const toast = document.getElementById("toast");
-    toast.textContent = msg;
-    toast.style.background = color;
-    toast.style.display = "block";
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => { toast.style.display = "none"; toast.style.opacity = "1"; }, 300);
-    }, 2500);
-}
-
-// ====================== HIỆU ỨNG CUỘN NHẸ NHÀNG & ẢO DIỆU ======================
-function initScrollReveal() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, i) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.classList.add('visible');
-                }, i * 70);   // stagger nhẹ nhàng
-            }
-        });
-    }, { threshold: 0.12, rootMargin: "0px 0px -60px 0px" });
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-}
-
-// ====================== KHỞI TẠO ======================
-window.onload = () => {
-    checkAdmin();
-    hienThi();
-
-    // Chỉ in hoa mã hàng
-    document.getElementById("mahang").addEventListener("input", e => {
-        e.target.value = e.target.value.toUpperCase();
-    });
-
-    document.getElementById("search").addEventListener("input", timKiemRealTime);
-
-    // Áp dụng reveal cho các phần chính
-    document.querySelector('.card').classList.add('reveal');
-    document.querySelector('.form-container').classList.add('reveal');
-    document.querySelector('.search-box').classList.add('reveal');
-    document.querySelector('.table-wrapper').classList.add('reveal');
-
-    // Khởi động hiệu ứng cuộn
-    initScrollReveal();
-
-    // Hiệu ứng vào trang ban đầu
-    const card = document.getElementById("mainCard");
-    card.style.opacity = "0";
-    card.style.transform = "scale(0.94) translateY(40px)";
-    setTimeout(() => {
-        card.style.transition = "all 850ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-        card.style.opacity = "1";
-        card.style.transform = "scale(1) translateY(0)";
-    }, 50);
-};
-</script>
-
-</body>
-</html>
+            if (!is
