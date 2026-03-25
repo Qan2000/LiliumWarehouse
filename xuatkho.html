@@ -1,3 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xuất kho - Lilium Warehouse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            height: 100vh;
+            background: #f4f6f9;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #1e293b, #334155);
+            color: white;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #22c55e;
+        }
+        .menu a {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            margin: 8px 0;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .menu a:hover, .menu a.active {
+            background: #22c55e;
+            color: white;
+            transform: translateX(8px);
+        }
+        .logout-btn {
+            margin-top: auto;
+            padding: 14px 18px;
+            background: #ef4444;
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 60px 20px;
+            overflow-y: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 40px 35px;
+            border-radius: 24px;
+            width: 520px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+        .back-link:hover { color: #22c55e; }
+
+        h2.card-title {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 30px;
+            font-size: 26px;
+        }
+
+        .input-group {
+            margin-bottom: 22px;
+            position: relative;
+        }
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f8fafc;
+        }
+        input:focus {
+            border-color: #22c55e;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(34,197,94,0.12);
+        }
+
+        .product-info {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-size: 14.5px;
+            line-height: 1.6;
+            display: none;
+            border-left: 5px solid #22c55e;
+        }
+
+        button.btn-export {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        button.btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .suggestions {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            z-index: 100;
+            max-height: 220px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+        .suggestions div {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8fafc;
+        }
+        .suggestions div:hover { background: #fee2e2; color: #ef4444; }
+
+        #lichsu {
+            margin-top: 30px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .history-title {
+            font-size: 15px;
+            color: #64748b;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .item {
+            background: #f8fafc;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            border-left: 5px solid #22c55e;
+            position: relative;
+        }
+        .delete-btn {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .delete-btn:hover { background: #ef4444; color: white; }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #22c55e;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+        }
+
+        /* Hiệu ứng chuyển cảnh mượt & ảo diệu */
+        .page-transition {
+            animation: pageOut 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes pageOut {
+            to {
+                opacity: 0;
+                transform: scale(0.94) translateY(30px);
+                filter: blur(8px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>LILIUM WAREHOUSE</h2>
+    <div class="menu">
+        <a href="index.html"><span>🏠</span> Trang chủ</a>
+        <a href="nhapkho.html"><span>📥</span> Nhập kho</a>
+        <a href="xuatkho.html" class="active"><span>📤</span> Xuất kho</a>
+        <a href="tonkho.html"><span>📊</span> Tồn kho</a>
+    </div>
+    <div class="logout-btn" onclick="logout()">🚪 Đăng xuất</div>
+</div>
+
+<div class="content">
+    <div class="card" id="mainCard">
+        <a href="index.html" class="back-link">⬅ Quay lại Trang chủ</a>
+        <h2 class="card-title">📤 Xuất kho</h2>
+
+        <div class="input-group">
+            <label>Mã hàng hoặc Tên sản phẩm</label>
+            <input type="text" id="inputSearch" placeholder="Nhập mã hàng hoặc tên sản phẩm..." onkeyup="goiYSanPham()" autocomplete="off">
+            <div id="suggestions" class="suggestions"></div>
+        </div>
+
+        <div class="input-group">
+            <label>Số lượng xuất</label>
+            <input type="number" id="soluong" placeholder="Nhập số lượng..." min="1">
+        </div>
+
+        <div id="productInfo" class="product-info">
+            <strong id="infoTen"></strong><br>
+            <span id="infoMahang"></span><br>
+            <span id="infoNccNsx"></span><br>
+            <span id="infoQc"></span><br>
+            <span style="color:#16a34a; font-weight:600;" id="infoTon"></span>
+        </div>
+
+        <button class="btn-export" onclick="xuatKho()">XÁC NHẬN XUẤT KHO</button>
+
+        <div class="history-title">🕒 Lịch sử xuất kho gần đây</div>
+        <div id="lichsu"></div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
@@ -9,9 +284,9 @@ import {
 
 // 🔥 CONFIG FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyBHjg-9gjIStVv7QzYJXt9EkxwZO3KgJ3g",
-  authDomain: "lilium-kho.firebaseapp.com",
-  projectId: "lilium-kho"
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -148,3 +423,7 @@ function hienThiLichSuXuat() {
     });
 }
 </script>
+
+
+</body>
+</html>
