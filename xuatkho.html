@@ -276,137 +276,98 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  onSnapshot 
+  getFirestore, collection, addDoc, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // 🔥 CONFIG FIREBASE
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT"
+  apiKey: "AIzaSyBHjg-9gjIStVv7QzYJXt9EkxwZO3KgJ3g",
+  authDomain: "lilium-kho.firebaseapp.com",
+  projectId: "lilium-kho"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ================= DATA =================
-let danhSach = [];
-let sortDirection = {};
+let products = {};
+let stock = {};
 
-// 🔄 REALTIME LOAD
-onSnapshot(collection(db, "transactions"), (snapshot) => {
-    let stock = {};
-
+// ================= LOAD PRODUCTS =================
+onSnapshot(collection(db, "products"), (snapshot) => {
+    products = {};
     snapshot.forEach(doc => {
-        const data = doc.data();
-
-        if (!stock[data.mahang]) {
-            stock[data.mahang] = {
-                mahang: data.mahang,
-                ten: data.ten,
-                nsx: data.nsx || "",
-                ncc: data.ncc || "",
-                qc: data.qc || "",
-                soluong: 0
-            };
-        }
-
-        if (data.type === "import") {
-            stock[data.mahang].soluong += data.soluong;
-        } else {
-            stock[data.mahang].soluong -= data.soluong;
-        }
+        const d = doc.data();
+        products[d.mahang] = d;
     });
-
-    danhSach = Object.values(stock);
-    hienThi(document.getElementById("search").value);
 });
 
+// ================= LOAD STOCK =================
+onSnapshot(collection(db, "transactions"), (snapshot) => {
+    stock = {};
+
+    snapshot.forEach(doc => {
+        const d = doc.data();
+
+        if (!stock[d.mahang]) stock[d.mahang] = 0;
+
+        if (d.type === "import") stock[d.mahang] += d.soluong;
+        else stock[d.mahang] -= d.soluong;
+    });
+});
+
+// ================= GỢI Ý =================
+window.goiYSanPham = function() {
+    const input = document.getElementById("inputSearch").value.toUpperCase();
+    const box = document.getElementById("suggestions");
+    box.innerHTML = "";
+
+    Object.values(products).forEach(sp => {
+        if (sp.mahang.includes(input) || sp.ten.toUpperCase().includes(input)) {
+            const div = document.createElement("div");
+            div.innerHTML = `<b>${sp.mahang}</b> — ${sp.ten}`;
+            div.onclick = () => {
+                document.getElementById("inputSearch").value = sp.mahang;
+                hienThiThongTin(sp);
+                box.innerHTML = "";
+            };
+            box.appendChild(div);
+        }
+    });
+};
+
 // ================= HIỂN THỊ =================
-function hienThi(filter = "") {
-    const bang = document.getElementById("bang");
-    bang.innerHTML = "";
-
-    let list = danhSach.filter(sp => {
-        const txt = (sp.mahang + " " + sp.ten + " " + sp.nsx + " " + sp.ncc).toLowerCase();
-        return txt.includes(filter.toLowerCase());
-    });
-
-    list.forEach((sp, i) => {
-        const nccNsx = sp.ncc && sp.nsx ? `${sp.ncc} - ${sp.nsx}` : (sp.ncc || sp.nsx || '-');
-
-        bang.innerHTML += `
-        <tr>
-            <td>${i+1}</td>
-            <td><strong>${sp.mahang}</strong></td>
-            <td><strong>${sp.ten}</strong></td>
-            <td>${nccNsx}</td>
-            <td>${sp.qc || '-'}</td>
-            <td><strong>${sp.soluong}</strong></td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-        </tr>`;
-    });
+function hienThiThongTin(sp) {
+    document.getElementById("productInfo").style.display = "block";
+    document.getElementById("infoTen").textContent = sp.ten;
+    document.getElementById("infoMahang").textContent = "Mã: " + sp.mahang;
+    document.getElementById("infoTon").textContent = 
+        "Tồn: " + (stock[sp.mahang] || 0);
 }
 
-// ================= THÊM SẢN PHẨM =================
-window.themSanPham = async function() {
-    const mahang = document.getElementById("mahang").value.trim().toUpperCase();
-    const ten = document.getElementById("ten").value.trim();
+// ================= XUẤT KHO =================
+window.xuatKho = async function() {
+    const mahang = document.getElementById("inputSearch").value.toUpperCase();
     const soluong = parseFloat(document.getElementById("soluong").value);
 
-    if (!mahang || !ten || !soluong) {
-        showToast("Nhập thiếu dữ liệu!", "#ef4444");
+    if (!mahang || !soluong) {
+        alert("Nhập thiếu!");
+        return;
+    }
+
+    if ((stock[mahang] || 0) < soluong) {
+        alert("Không đủ hàng!");
         return;
     }
 
     await addDoc(collection(db, "transactions"), {
         mahang,
-        ten,
         soluong,
-        type: "import",
-        nsx: document.getElementById("nsx").value,
-        ncc: document.getElementById("ncc").value,
-        qc: document.getElementById("qc").value,
+        type: "export",
         createdAt: new Date()
     });
 
-    showToast("✅ Đã nhập kho!");
-    resetForm();
-};
-
-// ================= RESET =================
-window.resetForm = function() {
-    document.querySelectorAll("input").forEach(i => i.value = "");
-};
-
-// ================= SEARCH =================
-document.getElementById("search").addEventListener("input", () => {
-    hienThi(document.getElementById("search").value);
-});
-
-// ================= EXCEL =================
-window.xuatExcel = function() {
-    if (danhSach.length === 0) return;
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(danhSach);
-    XLSX.utils.book_append_sheet(wb, ws, "TonKho");
-    XLSX.writeFile(wb, "tonkho.xlsx");
-};
-
-// ================= TOAST =================
-window.showToast = function(msg, color="#1A472A") {
-    const t = document.getElementById("toast");
-    t.textContent = msg;
-    t.style.background = color;
-    t.style.display = "block";
-    setTimeout(() => t.style.display = "none", 2500);
+    alert("✅ Xuất thành công");
 };
 </script>
 
