@@ -268,218 +268,99 @@
 
 <div id="toast"></div>
 
-<script>
-let danhSach = JSON.parse(localStorage.getItem("mypham")) || [];
-let editIndex = -1;
-let sortDirection = {};
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { 
+  getFirestore, collection, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function checkAdmin() {
-    const isAdmin = sessionStorage.getItem("isLoggedIn") === "true";
-    document.querySelectorAll('.admin-only').forEach(link => link.style.display = isAdmin ? "block" : "none");
-}
-
-function luuLocal() {
-    localStorage.setItem("mypham", JSON.stringify(danhSach));
-}
-
-function hienThi(filter = "") {
-    const bang = document.getElementById("bang");
-    bang.innerHTML = "";
-
-    let list = danhSach.filter(sp => {
-        const txt = (sp.mahang + " " + sp.ten + " " + (sp.nsx||"") + " " + (sp.ncc||"")).toLowerCase();
-        return txt.includes(filter.toLowerCase());
-    });
-
-    // Sắp xếp
-    const col = Object.keys(sortDirection)[0];
-    if (col) {
-        const idx = parseInt(col);
-        const dir = sortDirection[col];
-        list.sort((a,b) => {
-            let va = Object.values(a)[idx] || "";
-            let vb = Object.values(b)[idx] || "";
-            if (!isNaN(va) && !isNaN(vb)) return dir * (parseFloat(va) - parseFloat(vb));
-            return dir * String(va).localeCompare(String(vb));
-        });
-    }
-
-    list.forEach(sp => {
-        const i = danhSach.indexOf(sp);
-        const nccNsx = sp.ncc && sp.nsx ? `${sp.ncc} - ${sp.nsx}` : (sp.ncc || sp.nsx || '-');
-
-        bang.innerHTML += `
-            <tr class="reveal">
-                <td>${i+1}</td>
-                <td><strong>${sp.mahang}</strong></td>
-                <td><strong>${sp.ten}</strong></td>
-                <td>${nccNsx}</td>
-                <td>${sp.qc || '-'}</td>
-                <td><strong>${parseFloat(sp.soluong).toFixed(3).replace(/\.?0+$/,'')}</strong></td>
-                <td>${sp.shelflife ? sp.shelflife + ' tháng' : '-'}</td>
-                <td>${sp.manufacture || '-'}</td>
-                <td>${sp.retest || '-'}</td>
-                <td>
-                    <button onclick="suaSanPham(${i})" class="action-btn edit-btn">✏️ Sửa</button>
-                    <button onclick="xoaSanPham(${i})" class="action-btn delete-btn">🗑️ Xóa</button>
-                </td>
-            </tr>`;
-    });
-
-    // Reveal effect cho hàng
-    setTimeout(() => {
-        document.querySelectorAll('#bang tr.reveal').forEach((el, idx) => {
-            setTimeout(() => el.classList.add('visible'), idx * 50);
-        });
-    }, 80);
-}
-
-function themSanPham() {
-    const mahang = document.getElementById("mahang").value.trim().toUpperCase();
-    const ten = document.getElementById("ten").value.trim();
-    const nsx = document.getElementById("nsx").value.trim();
-    const ncc = document.getElementById("ncc").value.trim();
-    const qc = document.getElementById("qc").value.trim();
-    const soluongStr = document.getElementById("soluong").value;
-
-    if (!mahang || !ten || !soluongStr) {
-        showToast("Vui lòng nhập đầy đủ Mã hàng, Tên sản phẩm và Số lượng!", "#ef4444");
-        return;
-    }
-
-    const soluong = parseFloat(soluongStr);
-
-    const sp = {
-        mahang, ten, nsx, ncc, qc,
-        soluong,
-        shelflife: document.getElementById("shelflife").value.trim() || null,
-        manufacture: document.getElementById("manufacture").value || null,
-        retest: document.getElementById("retest").value || null
-    };
-
-    if (editIndex >= 0) {
-        danhSach[editIndex] = sp;
-        showToast("✅ Đã cập nhật sản phẩm thành công!");
-        editIndex = -1;
-    } else {
-        danhSach.push(sp);
-        showToast("✅ Đã thêm sản phẩm vào kho!");
-    }
-
-    luuLocal();
-    hienThi(document.getElementById("search").value);   // ← Đây là dòng quan trọng nhất
-    resetForm();
-}
-
-function xoaSanPham(i) {
-    if (confirm("Xóa sản phẩm này?")) {
-        danhSach.splice(i, 1);
-        luuLocal();
-        hienThi(document.getElementById("search").value);
-        showToast("🗑️ Đã xóa sản phẩm!");
-    }
-}
-
-function suaSanPham(i) {
-    editIndex = i;
-    const sp = danhSach[i];
-    document.getElementById("mahang").value = sp.mahang;
-    document.getElementById("ten").value = sp.ten;
-    document.getElementById("nsx").value = sp.nsx || "";
-    document.getElementById("ncc").value = sp.ncc || "";
-    document.getElementById("qc").value = sp.qc || "";
-    document.getElementById("soluong").value = sp.soluong;
-    document.getElementById("shelflife").value = sp.shelflife || "";
-    document.getElementById("manufacture").value = sp.manufacture || "";
-    document.getElementById("retest").value = sp.retest || "";
-    showToast("✏️ Đang chỉnh sửa...", "#3b82f6");
-}
-
-function resetForm() {
-    document.getElementById("mahang").value = "";
-    document.getElementById("ten").value = "";
-    document.getElementById("nsx").value = "";
-    document.getElementById("ncc").value = "";
-    document.getElementById("qc").value = "";
-    document.getElementById("soluong").value = "";
-    document.getElementById("shelflife").value = "";
-    document.getElementById("manufacture").value = "";
-    document.getElementById("retest").value = "";
-    editIndex = -1;
-}
-
-function timKiemRealTime() {
-    hienThi(document.getElementById("search").value);
-}
-
-function xuatExcel() {
-    if (danhSach.length === 0) return showToast("Không có dữ liệu!", "#ef4444");
-    const wb = XLSX.utils.book_new();
-    const data = danhSach.map((sp,i) => ({
-        STT: i+1,
-        "Mã hàng": sp.mahang,
-        "Tên sản phẩm": sp.ten,
-        "Nhà cung cấp": sp.ncc||"",
-        "Nơi sản xuất": sp.nsx||"",
-        "Quy cách": sp.qc||"",
-        "Số lượng": sp.soluong,
-        "Shelf Life": sp.shelflife||"",
-        "Manufacture Date": sp.manufacture||"",
-        "Retest Date": sp.retest||""
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, "TonKho");
-    XLSX.writeFile(wb, `TonKho_MyPham_${new Date().toISOString().slice(0,10)}.xlsx`);
-    showToast("📊 Đã xuất Excel!");
-}
-
-function sortTable(col) {
-    const key = col.toString();
-    sortDirection = {};
-    sortDirection[key] = (sortDirection[key] === 1) ? -1 : 1;
-    hienThi(document.getElementById("search").value);
-}
-
-function showToast(msg, color = "#1A472A") {
-    const t = document.getElementById("toast");
-    t.textContent = msg;
-    t.style.background = color;
-    t.style.display = "block";
-    setTimeout(() => { t.style.opacity = "0"; }, 2200);
-    setTimeout(() => { t.style.display = "none"; t.style.opacity = "1"; }, 2800);
-}
-
-function initReveal() {
-    const obs = new IntersectionObserver(entries => {
-        entries.forEach((e,i) => {
-            if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i*60);
-        });
-    }, {threshold: 0.1});
-
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-}
-
-window.onload = () => {
-    checkAdmin();
-    hienThi();
-
-    document.getElementById("mahang").addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
-    document.getElementById("search").addEventListener("input", timKiemRealTime);
-
-    document.querySelectorAll('.reveal').forEach(el => el.classList.add('reveal')); // đảm bảo có class
-
-    initReveal();
-
-    // Hiệu ứng card ban đầu
-    const card = document.getElementById("mainCard");
-    card.style.opacity = "0";
-    card.style.transform = "scale(0.95) translateY(30px)";
-    setTimeout(() => {
-        card.style.transition = "all 0.85s cubic-bezier(0.25,0.46,0.45,0.94)";
-        card.style.opacity = "1";
-        card.style.transform = "scale(1) translateY(0)";
-    }, 100);
+// 🔥 CONFIG FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyBHjg-9gjIStVv7QzYJXt9EkxwZO3KgJ3g",
+  authDomain: "lilium-kho.firebaseapp.com",
+  projectId: "lilium-kho"
 };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ================= DATA =================
+let products = {};
+let stock = {};
+
+// ================= LOAD PRODUCTS =================
+onSnapshot(collection(db, "products"), (snapshot) => {
+    products = {};
+    snapshot.forEach(doc => {
+        const d = doc.data();
+        products[d.mahang] = d;
+    });
+    render();
+});
+
+// ================= LOAD TRANSACTIONS =================
+onSnapshot(collection(db, "transactions"), (snapshot) => {
+    stock = {};
+
+    snapshot.forEach(doc => {
+        const d = doc.data();
+
+        if (!stock[d.mahang]) stock[d.mahang] = 0;
+
+        if (d.type === "import") stock[d.mahang] += d.soluong;
+        else stock[d.mahang] -= d.soluong;
+    });
+
+    render();
+});
+
+// ================= RENDER =================
+function render() {
+    const table = document.getElementById("bang");
+    table.innerHTML = "";
+
+    Object.keys(products).forEach(ma => {
+        const p = products[ma];
+        const sl = stock[ma] || 0;
+
+        table.innerHTML += `
+        <tr>
+            <td>${ma}</td>
+            <td>${p.ten}</td>
+            <td>${p.ncc || ""}</td>
+            <td>${p.nsx || ""}</td>
+            <td>${p.qc || ""}</td>
+            <td><b>${sl}</b></td>
+        </tr>`;
+    });
+}
+
+// ================= SEARCH =================
+document.getElementById("search").addEventListener("input", () => {
+    const keyword = document.getElementById("search").value.toLowerCase();
+
+    const table = document.getElementById("bang");
+    table.innerHTML = "";
+
+    Object.keys(products).forEach(ma => {
+        const p = products[ma];
+        const txt = (ma + p.ten).toLowerCase();
+
+        if (!txt.includes(keyword)) return;
+
+        const sl = stock[ma] || 0;
+
+        table.innerHTML += `
+        <tr>
+            <td>${ma}</td>
+            <td>${p.ten}</td>
+            <td>${p.ncc || ""}</td>
+            <td>${p.nsx || ""}</td>
+            <td>${p.qc || ""}</td>
+            <td><b>${sl}</b></td>
+        </tr>`;
+    });
+});
 </script>
 </body>
 </html>
