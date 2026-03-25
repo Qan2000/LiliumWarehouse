@@ -1,517 +1,99 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhập kho - Lilium Warehouse</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            height: 100vh;
-            background: linear-gradient(135deg, #f8fafc, #e0f2fe);
-            overflow: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #1e293b, #0f172a);
-            color: white;
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 25px rgba(0,0,0,0.15);
-        }
-        .sidebar h2 {
-            font-size: 22px;
-            text-align: center;
-            margin-bottom: 40px;
-            color: #22c55e;
-        }
-        .menu a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
-            margin: 6px 0;
-            color: #cbd5e1;
-            text-decoration: none;
-            border-radius: 14px;
-            transition: all 0.4s ease;
-        }
-        .menu a:hover, .menu a.active {
-            background: #22c55e;
-            color: white;
-            transform: translateX(12px);
-        }
-
-        .logout-btn {
-            margin-top: auto;
-            padding: 16px;
-            background: #ef4444;
-            color: white;
-            text-align: center;
-            border-radius: 14px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .logout-btn:hover { background: #dc2626; }
-
-        /* Content */
-        .content {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-        }
-
-        .card {
-            background: white;
-            padding: 50px 45px;
-            border-radius: 28px;
-            width: 100%;
-            max-width: 560px;
-            box-shadow: 0 25px 70px rgba(0,0,0,0.13);
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #64748b;
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 25px;
-            text-decoration: none;
-        }
-        .back-link:hover { color: #22c55e; }
-
-        h2.card-title { 
-            text-align: center; 
-            color: #1e293b; 
-            font-size: 28px; 
-            margin-bottom: 35px; 
-            font-weight: 700; 
-        }
-
-        .input-group { 
-            margin-bottom: 24px; 
-            position: relative; 
-        }
-        .input-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 8px;
-        }
-        input {
-            width: 100%;
-            padding: 16px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 16px;
-            background: #f8fafc;
-        }
-        input:focus {
-            border-color: #22c55e;
-            background: white;
-            box-shadow: 0 0 0 5px rgba(34,197,94,0.15);
-        }
-
-        .suggestions {
-            position: absolute;
-            width: 100%;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.18);
-            z-index: 100;
-            max-height: 260px;
-            overflow-y: auto;
-            margin-top: 6px;
-        }
-        .suggestions div {
-            padding: 14px 18px;
-            cursor: pointer;
-        }
-        .suggestions div:hover { background: #f0fdf4; }
-
-        .btn-row { 
-            display: flex; 
-            gap: 14px; 
-            margin-top: 10px; 
-        }
-        button {
-            flex: 1;
-            padding: 18px;
-            border: none;
-            border-radius: 16px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.4s ease;
-        }
-        button.btn-submit { 
-            background: linear-gradient(135deg, #22c55e, #16a34a); 
-            color: white; 
-        }
-        button.btn-quick  { 
-            background: linear-gradient(135deg, #3b82f6, #2563eb); 
-            color: white; 
-        }
-        button:hover { transform: translateY(-3px); }
-
-        #lichsu { 
-            margin-top: 40px; 
-            max-height: 320px; 
-            overflow-y: auto; 
-        }
-        .history-title { 
-            font-size: 16px; 
-            color: #64748b; 
-            margin-bottom: 15px; 
-            font-weight: 600; 
-        }
-        .item {
-            background: #f8fafc;
-            padding: 16px 18px;
-            margin-bottom: 12px;
-            border-radius: 16px;
-            border-left: 6px solid #22c55e;
-            position: relative;
-        }
-        .delete-btn {
-            position: absolute;
-            right: 12px;
-            top: 12px;
-            background: #fee2e2;
-            color: #ef4444;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        .delete-btn:hover { 
-            background: #ef4444; 
-            color: white; 
-        }
-
-        #toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #22c55e;
-            color: white;
-            padding: 16px 26px;
-            border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(34,197,94,0.35);
-            display: none;
-            z-index: 1000;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Nhập kho - Lilium Warehouse</title>
 </head>
+
 <body>
 
-<div class="sidebar">
-    <h2>LILIUM WAREHOUSE</h2>
-    <div class="menu">
-        <a href="index.html"><span>🏠</span> Trang chủ</a>
-        <a href="nhapkho.html" class="active"><span>📥</span> Nhập kho</a>
-        <a href="xuatkho.html"><span>📤</span> Xuất kho</a>
-        <a href="tonkho.html"><span>📊</span> Tồn kho</a>
-    </div>
-    <div class="logout-btn" onclick="logout()">🚪 Đăng xuất</div>
-</div>
+<h2>📥 Nhập kho (Realtime)</h2>
 
-<div class="content">
-    <div class="card" id="mainCard">
-        <a href="index.html" class="back-link">← Quay lại Trang chủ</a>
-        <h2 class="card-title">📥 Nhập kho</h2>
+<input id="inputSearch" placeholder="Mã hàng / Tên SP">
+<input id="soluong" type="number" placeholder="Số lượng">
 
-        <div class="input-group">
-            <label>Mã hàng hoặc Tên sản phẩm</label>
-            <input type="text" id="inputSearch" placeholder="Nhập mã hàng hoặc tên sản phẩm..." onkeyup="goiYSanPham()" autocomplete="off">
-            <div id="suggestions" class="suggestions"></div>
-        </div>
+<button onclick="nhapKho()">Nhập kho</button>
+<button onclick="nhapNhanh()">Nhập nhanh</button>
 
-        <div class="input-group">
-            <label>Số lượng nhập</label>
-            <input type="number" id="soluong" placeholder="Nhập số lượng..." min="1" step="0.001">
-        </div>
+<h3>Lịch sử</h3>
+<ul id="lichsu"></ul>
 
-        <div id="newProductFields" style="display: none;">
-            <div class="input-group">
-                <label>Nơi sản xuất (NSX)</label>
-                <input type="text" id="nsx" placeholder="Ví dụ: Hàn Quốc, Pháp...">
-            </div>
-            <div class="input-group">
-                <label>Nhà cung cấp (NCC)</label>
-                <input type="text" id="ncc" placeholder="Ví dụ: Công ty ABC">
-            </div>
-            <div class="input-group">
-                <label>Quy cách</label>
-                <input type="text" id="qc" placeholder="Ví dụ: 50g, 100ml, 1kg...">
-            </div>
-        </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        <div class="btn-row">
-            <button class="btn-submit" onclick="nhapKho()">XÁC NHẬN NHẬP KHO</button>
-            <button class="btn-quick" onclick="nhapNhanh()">Nhập nhanh nhiều lần</button>
-        </div>
-
-        <div class="history-title">🕒 Lịch sử nhập kho gần đây</div>
-        <div id="lichsu"></div>
-    </div>
-</div>
-
-<div id="toast"></div>
-
-<script>
-// ====================== DỮ LIỆU ======================
-let danhSach = JSON.parse(localStorage.getItem("mypham")) || [];
-let lichSu = JSON.parse(localStorage.getItem("lichsu_nhap")) || [];
-
-// ====================== TOAST ======================
-function showToast(msg, color = "#22c55e") {
-    const toast = document.getElementById("toast");
-    toast.textContent = msg;
-    toast.style.background = color;
-    toast.style.display = "block";
-    setTimeout(() => toast.style.display = "none", 2800);
-}
-
-// ====================== GỢI Ý SẢN PHẨM ======================
-function goiYSanPham() {
-    const input = document.getElementById("inputSearch").value.trim().toUpperCase();
-    const suggestions = document.getElementById("suggestions");
-    suggestions.innerHTML = "";
-
-    if (input.length < 1) return;
-
-    const filtered = danhSach.filter(sp => 
-        (sp.mahang && sp.mahang.includes(input)) || 
-        (sp.ten && sp.ten.includes(input))
-    );
-
-    if (filtered.length === 0) {
-        suggestions.innerHTML = `<div style="color:#64748b; padding:10px 18px; font-style:italic;">Không tìm thấy. Bạn có thể tạo sản phẩm mới.</div>`;
-        document.getElementById("newProductFields").style.display = "block";
-        return;
-    }
-
-    filtered.forEach(sp => {
-        const div = document.createElement("div");
-        div.textContent = `${sp.mahang} — ${sp.ten}`;
-        div.onclick = () => {
-            document.getElementById("inputSearch").value = sp.mahang;
-            suggestions.innerHTML = "";
-            document.getElementById("newProductFields").style.display = "none";
-        };
-        suggestions.appendChild(div);
-    });
-}
-
-// ====================== NHẬP KHO CHÍNH ======================
-function nhapKho() {
-    const searchInput = document.getElementById("inputSearch").value.trim().toUpperCase();
-    let soluongNhap = parseFloat(document.getElementById("soluong").value);
-
-    if (!searchInput) {
-        showToast("Vui lòng nhập mã hàng hoặc tên sản phẩm!", "#ef4444");
-        return;
-    }
-    if (!soluongNhap || soluongNhap <= 0) {
-        showToast("Số lượng nhập phải lớn hơn 0!", "#ef4444");
-        return;
-    }
-
-    let index = danhSach.findIndex(sp => sp.mahang === searchInput);
-
-    if (index !== -1) {
-        // Sản phẩm đã tồn tại → cộng dồn
-        danhSach[index].soluong = (parseFloat(danhSach[index].soluong) || 0) + soluongNhap;
-        showToast(`✅ Đã nhập thêm ${soluongNhap} cho ${danhSach[index].ten}`, "#22c55e");
-    } else {
-        // Sản phẩm mới
-        if (document.getElementById("newProductFields").style.display === "none") {
-            showToast("Sản phẩm chưa có trong kho. Vui lòng nhập thông tin bên dưới!", "#ef4444");
-            document.getElementById("newProductFields").style.display = "block";
-            return;
-        }
-
-        const nsx = document.getElementById("nsx").value.trim();
-        const ncc = document.getElementById("ncc").value.trim();
-        const qc  = document.getElementById("qc").value.trim();
-
-        if (!nsx && !ncc) {
-            showToast("Vui lòng nhập ít nhất Nơi sản xuất hoặc Nhà cung cấp!", "#ef4444");
-            return;
-        }
-
-        const sanPhamMoi = {
-            mahang: searchInput,
-            ten: searchInput,           // tạm dùng mã hàng làm tên
-            nsx: nsx,
-            ncc: ncc,
-            qc: qc,
-            soluong: soluongNhap,
-            shelflife: null,
-            manufacture: null,
-            retest: null
-        };
-
-        danhSach.push(sanPhamMoi);
-        showToast(`✅ Đã tạo sản phẩm mới và nhập ${soluongNhap}`, "#22c55e");
-    }
-
-    // Lưu tồn kho
-    localStorage.setItem("mypham", JSON.stringify(danhSach));
-
-    // Lưu lịch sử
-    lichSu.unshift({
-        ngay: new Date().toLocaleString('vi-VN'),
-        mahang: searchInput,
-        ten: danhSach.find(sp => sp.mahang === searchInput)?.ten || searchInput,
-        soluong: soluongNhap
-    });
-
-    if (lichSu.length > 50) lichSu.pop();
-    localStorage.setItem("lichsu_nhap", JSON.stringify(lichSu));
-
-    hienThiLichSu();
-    resetForm();
-}
-
-// ====================== NHẬP NHANH ======================
-function nhapNhanh() {
-    const searchInput = document.getElementById("inputSearch").value.trim().toUpperCase();
-    let soluongNhap = parseFloat(document.getElementById("soluong").value);
-
-    if (!searchInput || !soluongNhap || soluongNhap <= 0) {
-        showToast("Vui lòng nhập mã hàng và số lượng hợp lệ!", "#ef4444");
-        return;
-    }
-
-    let index = danhSach.findIndex(sp => sp.mahang === searchInput);
-    if (index === -1) {
-        showToast("Sản phẩm chưa tồn tại. Hãy dùng nút XÁC NHẬN NHẬP KHO để tạo mới.", "#ef4444");
-        return;
-    }
-
-    danhSach[index].soluong = (parseFloat(danhSach[index].soluong) || 0) + soluongNhap;
-
-    localStorage.setItem("mypham", JSON.stringify(danhSach));
-
-    lichSu.unshift({
-        ngay: new Date().toLocaleString('vi-VN'),
-        mahang: searchInput,
-        ten: danhSach[index].ten,
-        soluong: soluongNhap
-    });
-
-    if (lichSu.length > 50) lichSu.pop();
-    localStorage.setItem("lichsu_nhap", JSON.stringify(lichSu));
-
-    hienThiLichSu();
-    showToast(`✅ Nhập nhanh +${soluongNhap} thành công!`, "#22c55e");
-}
-
-// ====================== HIỂN THỊ LỊCH SỬ ======================
-function hienThiLichSu() {
-    const container = document.getElementById("lichsu");
-    container.innerHTML = "";
-
-    if (lichSu.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:30px;">Chưa có lịch sử nhập kho</div>`;
-        return;
-    }
-
-    lichSu.forEach((item, index) => {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-            <strong>${item.mahang}</strong> — ${item.ten}<br>
-            <small>${item.ngay}</small><br>
-            <strong style="color:#22c55e;">+${parseFloat(item.soluong).toFixed(3)}</strong>
-            <button class="delete-btn" onclick="xoaLichSu(${index}, this)">×</button>
-        `;
-        container.appendChild(div);
-    });
-}
-
-function xoaLichSu(index, element) {
-    if (confirm("Xóa bản ghi nhập kho này?")) {
-        lichSu.splice(index, 1);
-        localStorage.setItem("lichsu_nhap", JSON.stringify(lichSu));
-        hienThiLichSu();
-    }
-}
-
-// ====================== RESET FORM ======================
-function resetForm() {
-    document.getElementById("inputSearch").value = "";
-    document.getElementById("soluong").value = "";
-    document.getElementById("nsx").value = "";
-    document.getElementById("ncc").value = "";
-    document.getElementById("qc").value = "";
-    document.getElementById("newProductFields").style.display = "none";
-    document.getElementById("suggestions").innerHTML = "";
-}
-
-// ====================== ĐĂNG XUẤT ======================
-function logout() {
-    if (confirm("Đăng xuất khỏi hệ thống?")) {
-        sessionStorage.removeItem("isLoggedIn");
-        window.location.href = "index.html";
-    }
-}
-
-// ====================== HIỆU ỨNG CHUYỂN TRANG ======================
-function navigateTo(url) {
-    const card = document.getElementById("mainCard");
-    card.style.transition = 'transform 680ms cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 680ms cubic-bezier(0.45, 0.05, 0.55, 0.95)';
-    card.style.transform = 'scale(0.97) translateY(35px)';
-    card.style.opacity = '0';
-
-    setTimeout(() => window.location.href = url, 680);
-}
-
-document.querySelectorAll('.sidebar a, .back-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-        if (this.getAttribute('href') && this.getAttribute('href') !== window.location.pathname.split("/").pop()) {
-            e.preventDefault();
-            navigateTo(this.getAttribute('href'));
-        }
-    });
-});
-
-// ====================== KHỞI TẠO ======================
-window.onload = () => {
-    hienThiLichSu();
-
-    document.addEventListener("click", (e) => {
-        if (!e.target.closest(".input-group")) {
-            document.getElementById("suggestions").innerHTML = "";
-        }
-    });
-
-    // Hiệu ứng vào trang
-    const card = document.getElementById("mainCard");
-    card.style.opacity = "0";
-    card.style.transform = "scale(0.94) translateY(50px)";
-
-    setTimeout(() => {
-        card.style.transition = "all 820ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-        card.style.opacity = "1";
-        card.style.transform = "scale(1) translateY(0)";
-    }, 50);
+// 🔥 THAY CONFIG CỦA BẠN
+const firebaseConfig = {
+  apiKey: "AIzaSyBHjg-9gjIStVv7QzYJXt9EkxwZO3KgJ3g",
+  authDomain: "lilium-kho.firebaseapp.com",
+  projectId: "lilium-kho"
 };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ================= NHẬP KHO =================
+window.nhapKho = async function () {
+  const name = document.getElementById("inputSearch").value.trim();
+  const qty = Number(document.getElementById("soluong").value);
+
+  if (!name || qty <= 0) {
+    alert("Nhập thiếu dữ liệu!");
+    return;
+  }
+
+  await addDoc(collection(db, "transactions"), {
+    mahang: name.toUpperCase(),
+    ten: name,
+    soluong: qty,
+    type: "import",
+    createdAt: new Date()
+  });
+
+  document.getElementById("inputSearch").value = "";
+  document.getElementById("soluong").value = "";
+};
+
+// ================= NHẬP NHANH =================
+window.nhapNhanh = async function () {
+  const name = document.getElementById("inputSearch").value.trim();
+  const qty = Number(document.getElementById("soluong").value);
+
+  if (!name || qty <= 0) return;
+
+  await addDoc(collection(db, "transactions"), {
+    mahang: name.toUpperCase(),
+    ten: name,
+    soluong: qty,
+    type: "import",
+    createdAt: new Date()
+  });
+};
+
+// ================= REALTIME =================
+const list = document.getElementById("lichsu");
+
+onSnapshot(collection(db, "transactions"), (snapshot) => {
+  list.innerHTML = "";
+
+  let dataArr = [];
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.type === "import") {
+      dataArr.push(data);
+    }
+  });
+
+  dataArr.reverse();
+
+  dataArr.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.mahang} - +${item.soluong}`;
+    list.appendChild(li);
+  });
+});
 </script>
 
 </body>
