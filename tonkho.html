@@ -66,7 +66,6 @@
             border-radius: 24px;
             width: 1120px;
             box-shadow: 0 20px 50px rgba(26, 71, 42, 0.15);
-            will-change: transform, opacity;
         }
 
         .back-link {
@@ -90,31 +89,7 @@
             font-size: 26px;
         }
 
-        /* ================== HIỆU ỨNG CHUYỂN CẢNH TỐI ƯU CHO CHROME ================== */
-        .page-out {
-            animation: pageOut 720ms cubic-bezier(0.42, 0.0, 0.58, 1.0) forwards !important;
-        }
-        @keyframes pageOut {
-            to {
-                opacity: 0;
-                transform: scale(0.965) translateY(40px);
-            }
-        }
-
-        .page-in {
-            animation: pageIn 850ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        }
-        @keyframes pageIn {
-            from {
-                opacity: 0;
-                transform: scale(0.93) translateY(55px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
+        /* Form & Search */
         .form-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -131,7 +106,6 @@
             border-radius: 12px;
             font-size: 15px;
             background: white;
-            text-transform: uppercase;
         }
         input:focus {
             outline: none;
@@ -166,6 +140,7 @@
             border-radius: 12px;
         }
 
+        /* Bảng - Cỡ chữ đã điều chỉnh đẹp hơn */
         .table-wrapper { overflow-x: auto; }
         table {
             width: 100%;
@@ -175,15 +150,39 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(26, 71, 42, 0.1);
         }
-        th, td { padding: 14px 12px; text-align: center; }
+        th, td { 
+            padding: 16px 12px; 
+            text-align: center;
+            font-size: 15.2px;           /* Tăng nhẹ cho dễ đọc */
+            line-height: 1.5;
+        }
         th {
             background: linear-gradient(135deg, #1A472A, #2E6B3F);
             color: white;
             cursor: pointer;
+            font-weight: 600;
+            font-size: 15.5px;
         }
         th:hover { background: #3a8a5a; }
         tr:nth-child(even) { background: #f8fbf9; }
         tr:hover { background: #f0f9f4; }
+
+        /* Hiệu ứng nhẹ nhàng & ảo diệu khi cuộn */
+        .reveal {
+            opacity: 0;
+            transform: translateY(35px);
+            transition: all 800ms cubic-bezier(0.25, 0.1, 0.25, 1);
+            will-change: opacity, transform;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Stagger cho từng hàng bảng - tạo cảm giác ảo diệu */
+        #bang tr {
+            transition: all 700ms cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
 
         #toast {
             position: fixed;
@@ -213,7 +212,7 @@
         <a href="index.html" class="back-link" id="backToHome">⬅ Quay lại Trang chủ</a>
         <h2 class="card-title">📊 Quản lý tồn kho - Mỹ phẩm</h2>
 
-        <form class="form-container" onsubmit="themSanPham(); return false;">
+        <form class="form-container reveal" onsubmit="themSanPham(); return false;">
             <input type="text" id="mahang" placeholder="Mã hàng *" maxlength="20" required>
             <input type="text" id="ten" placeholder="Tên sản phẩm *" required>
             <input type="text" id="nsx" placeholder="Nơi sản xuất">
@@ -228,18 +227,18 @@
             <button class="reset" type="button" onclick="resetForm()">🔄 Làm mới</button>
         </form>
 
-        <div class="search-box">
+        <div class="search-box reveal">
             <input type="text" id="search" placeholder="🔍 Tìm kiếm mã hàng, tên sản phẩm...">
             <button class="export-excel" onclick="xuatExcel()">📊 Xuất Excel</button>
         </div>
 
-        <div class="table-wrapper">
+        <div class="table-wrapper reveal">
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th onclick="sortTable(1)">Mã hàng</th>
-                        <th onclick="sortTable(2)">Tên sản phẩm ▼</th>
+                        <th onclick="sortTable(2)">Tên sản phẩm</th>
                         <th onclick="sortTable(3)">Nhà cung cấp / Nơi SX</th>
                         <th>Quy cách</th>
                         <th onclick="sortTable(5)">Số lượng</th>
@@ -283,7 +282,6 @@ function hienThi(filter = "") {
         return text.includes(filter.toLowerCase());
     });
 
-    // Sắp xếp theo cột hiện tại nếu có
     const sortedCol = Object.keys(sortDirection)[0];
     if (sortedCol) {
         const colIndex = parseInt(sortedCol);
@@ -298,7 +296,7 @@ function hienThi(filter = "") {
         });
     }
 
-    filteredList.forEach((sp, idx) => {
+    filteredList.forEach((sp) => {
         const originalIndex = danhSach.findIndex(item => item === sp);
         
         let nccNsx = '';
@@ -308,7 +306,7 @@ function hienThi(filter = "") {
         else nccNsx = '-';
 
         bang.innerHTML += `
-            <tr>
+            <tr class="reveal">
                 <td>${originalIndex + 1}</td>
                 <td><strong>${sp.mahang}</strong></td>
                 <td><strong>${sp.ten}</strong></td>
@@ -326,10 +324,9 @@ function hienThi(filter = "") {
     });
 }
 
-// ====================== THÊM / SỬA SẢN PHẨM ======================
 function themSanPham() {
     const mahang = document.getElementById("mahang").value.trim().toUpperCase();
-    const ten = document.getElementById("ten").value.trim().toUpperCase();
+    const ten = document.getElementById("ten").value.trim();
     const nsx = document.getElementById("nsx").value.trim();
     const ncc = document.getElementById("ncc").value.trim();
     const qc = document.getElementById("qc").value.trim();
@@ -343,21 +340,13 @@ function themSanPham() {
         return;
     }
 
-    const sanpham = {
-        mahang, ten, nsx, ncc, qc,
-        soluong: soluong,
-        shelflife: shelflife || null,
-        manufacture: manufacture || null,
-        retest: retest || null
-    };
+    const sanpham = { mahang, ten, nsx, ncc, qc, soluong, shelflife: shelflife || null, manufacture: manufacture || null, retest: retest || null };
 
     if (editIndex >= 0) {
-        // Sửa
         danhSach[editIndex] = sanpham;
         showToast("✅ Đã cập nhật sản phẩm thành công!");
         editIndex = -1;
     } else {
-        // Thêm mới
         danhSach.push(sanpham);
         showToast("✅ Đã thêm sản phẩm vào kho!");
     }
@@ -367,7 +356,6 @@ function themSanPham() {
     resetForm();
 }
 
-// ====================== XÓA SẢN PHẨM ======================
 function xoaSanPham(index) {
     if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
         danhSach.splice(index, 1);
@@ -377,11 +365,9 @@ function xoaSanPham(index) {
     }
 }
 
-// ====================== SỬA SẢN PHẨM ======================
 function suaSanPham(index) {
     editIndex = index;
     const sp = danhSach[index];
-
     document.getElementById("mahang").value = sp.mahang;
     document.getElementById("ten").value = sp.ten;
     document.getElementById("nsx").value = sp.nsx || "";
@@ -391,11 +377,9 @@ function suaSanPham(index) {
     document.getElementById("shelflife").value = sp.shelflife || "";
     document.getElementById("manufacture").value = sp.manufacture || "";
     document.getElementById("retest").value = sp.retest || "";
-
     showToast("✏️ Đang chỉnh sửa sản phẩm...", "#3b82f6");
 }
 
-// ====================== LÀM MỚI FORM ======================
 function resetForm() {
     document.getElementById("mahang").value = "";
     document.getElementById("ten").value = "";
@@ -409,18 +393,15 @@ function resetForm() {
     editIndex = -1;
 }
 
-// ====================== TÌM KIẾM ======================
 function timKiemRealTime() {
     hienThi(document.getElementById("search").value);
 }
 
-// ====================== XUẤT EXCEL ======================
 function xuatExcel() {
     if (danhSach.length === 0) {
         showToast("Không có dữ liệu để xuất!", "#ef4444");
         return;
     }
-
     const wb = XLSX.utils.book_new();
     const wsData = danhSach.map((sp, i) => ({
         "STT": i + 1,
@@ -434,15 +415,12 @@ function xuatExcel() {
         "Manufacture Date": sp.manufacture || "",
         "Retest Date": sp.retest || ""
     }));
-
     const ws = XLSX.utils.json_to_sheet(wsData);
     XLSX.utils.book_append_sheet(wb, ws, "Tồn kho Mỹ phẩm");
     XLSX.writeFile(wb, `TonKho_MyPham_${new Date().toISOString().slice(0,10)}.xlsx`);
-
     showToast("📊 Đã xuất file Excel!");
 }
 
-// ====================== SẮP XẾP BẢNG ======================
 function sortTable(col) {
     const key = col.toString();
     sortDirection = {};
@@ -450,69 +428,62 @@ function sortTable(col) {
     hienThi(document.getElementById("search").value);
 }
 
-// ====================== TOAST NOTIFICATION ======================
 function showToast(msg, color = "#1A472A") {
     const toast = document.getElementById("toast");
     toast.textContent = msg;
     toast.style.background = color;
     toast.style.display = "block";
-    
     setTimeout(() => {
         toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.style.display = "none";
-            toast.style.opacity = "1";
-        }, 300);
+        setTimeout(() => { toast.style.display = "none"; toast.style.opacity = "1"; }, 300);
     }, 2500);
 }
 
-// ====================== CHUYỂN TRANG MƯỢT MÀ ======================
-function navigateTo(url) {
-    const card = document.getElementById("mainCard");
-    card.style.transition = "all 720ms cubic-bezier(0.42, 0.0, 0.58, 1.0)";
-    card.style.opacity = "0";
-    card.style.transform = "scale(0.965) translateY(40px)";
+// ====================== HIỆU ỨNG CUỘN NHẸ NHÀNG & ẢO DIỆU ======================
+function initScrollReveal() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('visible');
+                }, i * 70);   // stagger nhẹ nhàng
+            }
+        });
+    }, { threshold: 0.12, rootMargin: "0px 0px -60px 0px" });
 
-    setTimeout(() => {
-        window.location.href = url;
-    }, 720);
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
-
-// Áp dụng hiệu ứng chuyển trang
-document.querySelectorAll('.sidebar a, .back-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-        if (this.getAttribute('href') && this.getAttribute('href') !== window.location.pathname.split("/").pop()) {
-            e.preventDefault();
-            navigateTo(this.getAttribute('href'));
-        }
-    });
-});
 
 // ====================== KHỞI TẠO ======================
 window.onload = () => {
     checkAdmin();
     hienThi();
 
-    // Tự động in hoa mã hàng và tên
+    // Chỉ in hoa mã hàng
     document.getElementById("mahang").addEventListener("input", e => {
-        e.target.value = e.target.value.toUpperCase();
-    });
-    document.getElementById("ten").addEventListener("input", e => {
         e.target.value = e.target.value.toUpperCase();
     });
 
     document.getElementById("search").addEventListener("input", timKiemRealTime);
 
-    // Hiệu ứng vào trang
+    // Áp dụng reveal cho các phần chính
+    document.querySelector('.card').classList.add('reveal');
+    document.querySelector('.form-container').classList.add('reveal');
+    document.querySelector('.search-box').classList.add('reveal');
+    document.querySelector('.table-wrapper').classList.add('reveal');
+
+    // Khởi động hiệu ứng cuộn
+    initScrollReveal();
+
+    // Hiệu ứng vào trang ban đầu
     const card = document.getElementById("mainCard");
     card.style.opacity = "0";
-    card.style.transform = "scale(0.93) translateY(55px)";
-
+    card.style.transform = "scale(0.94) translateY(40px)";
     setTimeout(() => {
         card.style.transition = "all 850ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
         card.style.opacity = "1";
         card.style.transform = "scale(1) translateY(0)";
-    }, 30);
+    }, 50);
 };
 </script>
 
