@@ -88,6 +88,10 @@
             font-size: 26px;
         }
 
+        .form-container, .search-box {
+            opacity: 1; /* Form và search box luôn hiện ngay */
+        }
+
         .form-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -122,10 +126,7 @@
         }
         .add { background: linear-gradient(135deg, #1A472A, #2E6B3F); color: white; }
         .add:hover { background: linear-gradient(135deg, #2E6B3F, #1A472A); transform: translateY(-2px); }
-
         .reset { background: #64748b; color: white; }
-        .reset:hover { background: #475569; }
-
         .export-excel { background: linear-gradient(135deg, #1A472A, #2E6B3F); color: white; }
 
         .search-box {
@@ -169,7 +170,7 @@
         tr:nth-child(even) { background: #f8fbf9; }
         tr:hover { background: #f0f9f4; }
 
-        /* === NÚT SỬA & XÓA ĐÃ ĐẸP HƠN === */
+        /* Nút Sửa & Xóa đẹp */
         .action-btn {
             padding: 8px 14px;
             margin: 0 4px;
@@ -183,47 +184,20 @@
             align-items: center;
             gap: 6px;
         }
-        .edit-btn {
-            background: #2E6B3F;
-            color: white;
-        }
-        .edit-btn:hover {
-            background: #1A472A;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(26, 71, 42, 0.3);
-        }
-        .delete-btn {
-            background: #ef4444;
-            color: white;
-        }
-        .delete-btn:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
+        .edit-btn  { background: #2E6B3F; color: white; }
+        .edit-btn:hover  { background: #1A472A; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,71,42,0.3); }
+        .delete-btn { background: #ef4444; color: white; }
+        .delete-btn:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239,68,68,0.4); }
 
-        /* Hiệu ứng reveal khi cuộn */
-        .reveal {
+        /* ================== HIỆU ỨNG ẢO DIỆU KHI CUỘN ================== */
+        .row-reveal {
             opacity: 0;
-            transform: translateY(35px);
-            transition: all 800ms cubic-bezier(0.25, 0.1, 0.25, 1);
+            transform: translateY(45px) scale(0.98);
+            transition: all 900ms cubic-bezier(0.25, 0.1, 0.25, 1);
         }
-        .reveal.visible {
+        .row-reveal.visible {
             opacity: 1;
-            transform: translateY(0);
-        }
-
-        #toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #1A472A;
-            color: white;
-            padding: 14px 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(26, 71, 42, 0.3);
-            display: none;
-            z-index: 1000;
+            transform: translateY(0) scale(1);
         }
     </style>
 </head>
@@ -241,7 +215,7 @@
         <a href="index.html" class="back-link">⬅ Quay lại Trang chủ</a>
         <h2 class="card-title">📊 Quản lý tồn kho - Mỹ phẩm</h2>
 
-        <form class="form-container reveal" onsubmit="themSanPham(); return false;">
+        <form class="form-container" onsubmit="themSanPham(); return false;">
             <input type="text" id="mahang" placeholder="Mã hàng *" maxlength="20" required>
             <input type="text" id="ten" placeholder="Tên sản phẩm *" required>
             <input type="text" id="nsx" placeholder="Nơi sản xuất">
@@ -256,12 +230,12 @@
             <button class="reset" type="button" onclick="resetForm()">🔄 Làm mới</button>
         </form>
 
-        <div class="search-box reveal">
+        <div class="search-box">
             <input type="text" id="search" placeholder="🔍 Tìm kiếm mã hàng, tên sản phẩm...">
             <button class="export-excel" onclick="xuatExcel()">📊 Xuất Excel</button>
         </div>
 
-        <div class="table-wrapper reveal">
+        <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
@@ -326,7 +300,7 @@ function hienThi(filter = "") {
         let nccNsx = sp.ncc && sp.nsx ? `${sp.ncc} - ${sp.nsx}` : (sp.ncc || sp.nsx || '-');
 
         bang.innerHTML += `
-            <tr class="reveal">
+            <tr class="row-reveal">
                 <td>${idx + 1}</td>
                 <td><strong>${sp.mahang}</strong></td>
                 <td><strong>${sp.ten}</strong></td>
@@ -343,12 +317,26 @@ function hienThi(filter = "") {
             </tr>`;
     });
 
-    // Kích hoạt hiệu ứng reveal cho các hàng
-    setTimeout(() => {
-        document.querySelectorAll('#bang tr.reveal').forEach((el, i) => {
-            setTimeout(() => el.classList.add('visible'), i * 60);
+    // Kích hoạt hiệu ứng ảo diệu khi cuộn
+    triggerRowReveal();
+}
+
+function triggerRowReveal() {
+    const rows = document.querySelectorAll('#bang tr.row-reveal');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('visible');
+                }, index * 80); // stagger tạo cảm giác ảo diệu
+            }
         });
-    }, 50);
+    }, {
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px"
+    });
+
+    rows.forEach(row => observer.observe(row));
 }
 
 function themSanPham() {
@@ -365,8 +353,7 @@ function themSanPham() {
     }
 
     const sanpham = {
-        mahang, ten, nsx, ncc, qc,
-        soluong,
+        mahang, ten, nsx, ncc, qc, soluong,
         shelflife: document.getElementById("shelflife").value.trim() || null,
         manufacture: document.getElementById("manufacture").value || null,
         retest: document.getElementById("retest").value || null
@@ -398,7 +385,6 @@ function xoaSanPham(index) {
 function suaSanPham(index) {
     editIndex = index;
     const sp = danhSach[index];
-
     document.getElementById("mahang").value = sp.mahang;
     document.getElementById("ten").value = sp.ten;
     document.getElementById("nsx").value = sp.nsx || "";
@@ -471,18 +457,7 @@ function showToast(msg, color = "#1A472A") {
     }, 2500);
 }
 
-function initScrollReveal() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, i) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => entry.target.classList.add('visible'), i * 70);
-            }
-        });
-    }, { threshold: 0.12 });
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-}
-
+// ====================== KHỞI TẠO ======================
 window.onload = () => {
     checkAdmin();
     hienThi();
@@ -490,13 +465,7 @@ window.onload = () => {
     document.getElementById("mahang").addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
     document.getElementById("search").addEventListener("input", timKiemRealTime);
 
-    document.querySelector('.card').classList.add('reveal');
-    document.querySelector('.form-container').classList.add('reveal');
-    document.querySelector('.search-box').classList.add('reveal');
-    document.querySelector('.table-wrapper').classList.add('reveal');
-
-    initScrollReveal();
-
+    // Hiệu ứng vào trang cho card
     const card = document.getElementById("mainCard");
     card.style.opacity = "0";
     card.style.transform = "scale(0.94) translateY(40px)";
