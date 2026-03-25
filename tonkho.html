@@ -53,9 +53,6 @@
 
         .content {
             flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
             padding: 60px 20px;
             overflow-y: auto;
         }
@@ -65,7 +62,9 @@
             padding: 40px 35px;
             border-radius: 24px;
             width: 1120px;
+            max-width: 100%;
             box-shadow: 0 20px 50px rgba(26, 71, 42, 0.15);
+            margin: 0 auto;
         }
 
         .back-link {
@@ -85,7 +84,7 @@
         h2.card-title {
             text-align: center;
             color: #1A472A;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             font-size: 26px;
         }
 
@@ -119,10 +118,14 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 15px;
+            transition: all 0.3s;
         }
         .add { background: linear-gradient(135deg, #1A472A, #2E6B3F); color: white; }
-        .add:hover { background: linear-gradient(135deg, #2E6B3F, #1A472A); }
+        .add:hover { background: linear-gradient(135deg, #2E6B3F, #1A472A); transform: translateY(-2px); }
+
         .reset { background: #64748b; color: white; }
+        .reset:hover { background: #475569; }
+
         .export-excel { background: linear-gradient(135deg, #1A472A, #2E6B3F); color: white; }
 
         .search-box {
@@ -162,10 +165,44 @@
             font-size: 15.5px;
         }
         th:hover { background: #3a8a5a; }
+
         tr:nth-child(even) { background: #f8fbf9; }
         tr:hover { background: #f0f9f4; }
 
-        /* Hiệu ứng nhẹ nhàng & ảo diệu */
+        /* === NÚT SỬA & XÓA ĐÃ ĐẸP HƠN === */
+        .action-btn {
+            padding: 8px 14px;
+            margin: 0 4px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .edit-btn {
+            background: #2E6B3F;
+            color: white;
+        }
+        .edit-btn:hover {
+            background: #1A472A;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 71, 42, 0.3);
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Hiệu ứng reveal khi cuộn */
         .reveal {
             opacity: 0;
             transform: translateY(35px);
@@ -272,7 +309,6 @@ function hienThi(filter = "") {
         return text.includes(filter.toLowerCase());
     });
 
-    // Sắp xếp nếu có
     const sortedCol = Object.keys(sortDirection)[0];
     if (sortedCol) {
         const colIndex = parseInt(sortedCol);
@@ -301,13 +337,13 @@ function hienThi(filter = "") {
                 <td>${sp.manufacture || '-'}</td>
                 <td>${sp.retest || '-'}</td>
                 <td>
-                    <button onclick="suaSanPham(${idx})" style="background:#2E6B3F;color:white;margin-right:5px;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;">Sửa</button>
-                    <button onclick="xoaSanPham(${idx})" style="background:#ef4444;color:white;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;">Xóa</button>
+                    <button onclick="suaSanPham(${idx})" class="action-btn edit-btn">✏️ Sửa</button>
+                    <button onclick="xoaSanPham(${idx})" class="action-btn delete-btn">🗑️ Xóa</button>
                 </td>
             </tr>`;
     });
 
-    // Kích hoạt lại hiệu ứng reveal cho các hàng mới
+    // Kích hoạt hiệu ứng reveal cho các hàng
     setTimeout(() => {
         document.querySelectorAll('#bang tr.reveal').forEach((el, i) => {
             setTimeout(() => el.classList.add('visible'), i * 60);
@@ -315,7 +351,6 @@ function hienThi(filter = "") {
     }, 50);
 }
 
-// ====================== THÊM / SỬA ======================
 function themSanPham() {
     const mahang = document.getElementById("mahang").value.trim().toUpperCase();
     const ten = document.getElementById("ten").value.trim();
@@ -338,22 +373,19 @@ function themSanPham() {
     };
 
     if (editIndex >= 0) {
-        // === SỬA ===
         danhSach[editIndex] = sanpham;
         showToast("✅ Đã cập nhật sản phẩm thành công!");
         editIndex = -1;
     } else {
-        // === THÊM MỚI ===
         danhSach.push(sanpham);
         showToast("✅ Đã thêm sản phẩm vào kho!");
     }
 
     luuLocal();
-    hienThi(document.getElementById("search").value);   // Cập nhật bảng ngay
+    hienThi(document.getElementById("search").value);
     resetForm();
 }
 
-// ====================== XÓA & SỬA ======================
 function xoaSanPham(index) {
     if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
         danhSach.splice(index, 1);
@@ -439,7 +471,6 @@ function showToast(msg, color = "#1A472A") {
     }, 2500);
 }
 
-// Hiệu ứng cuộn
 function initScrollReveal() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry, i) => {
@@ -452,7 +483,6 @@ function initScrollReveal() {
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-// Khởi tạo
 window.onload = () => {
     checkAdmin();
     hienThi();
@@ -467,7 +497,6 @@ window.onload = () => {
 
     initScrollReveal();
 
-    // Hiệu ứng vào trang
     const card = document.getElementById("mainCard");
     card.style.opacity = "0";
     card.style.transform = "scale(0.94) translateY(40px)";
@@ -478,5 +507,6 @@ window.onload = () => {
     }, 50);
 };
 </script>
+
 </body>
 </html>
