@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lilium Warehouse</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== BACKGROUND ANIMATION ===== */
+body{
+    font-family:Inter;
+    display:flex;
+    height:100vh;
+    background:linear-gradient(270deg,#f4f6f9,#e0f2fe,#f0fdf4);
+    background-size:600% 600%;
+    animation:bgMove 12s ease infinite;
+}
+
+@keyframes bgMove{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+
+/* ===== BACKGROUND LOGO ===== */
+.bg-logo{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:500px;
+    opacity:0.06;
+    filter:blur(1px);
+    animation:logoPulse 6s ease-in-out infinite;
+}
+
+@keyframes logoPulse{
+    0%,100%{transform:translate(-50%,-50%) scale(1)}
+    50%{transform:translate(-50%,-50%) scale(1.05)}
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+    width:260px;
+    background:#1e293b;
+    color:white;
+    padding:20px;
+}
+
+/* LOGO */
+.logo-box{
+    display:flex;
+    justify-content:center;
+    margin-bottom:30px;
+}
+
+.logo-box img{
+    width:65px;
+}
+
+/* MENU */
+.sidebar a{
+    display:block;
+    padding:14px;
+    margin:8px 0;
+    color:#cbd5e1;
+    text-decoration:none;
+    border-radius:14px;
+    position:relative;
+    overflow:hidden;
+    transition:all 0.35s ease;
+}
+
+.sidebar a::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-100%;
+    width:100%;
+    height:100%;
+    background:linear-gradient(120deg,transparent,#22c55e,transparent);
+    transition:0.5s;
+}
+
+.sidebar a:hover::before{
+    left:100%;
+}
+
+.sidebar a:hover,
+.sidebar a.active{
+    background:#22c55e;
+    color:white;
+    transform:translateX(8px) scale(1.03);
+    box-shadow:0 10px 25px rgba(34,197,94,0.4);
+}
+
+/* ẨN ADMIN */
+.admin-only{
+    display:none;
+}
+
+/* ===== CONTENT ===== */
+.content{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* CARD */
+.card{
+    background:white;
+    padding:60px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,0.1);
+    transition:0.4s;
+    animation:float 4s ease-in-out infinite;
+}
+
+@keyframes float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-8px)}
+}
+
+.card:hover{
+    transform:translateY(-10px) scale(1.02);
+    box-shadow:0 20px 60px rgba(0,0,0,0.2);
+}
+
+/* TEXT HOVER */
+.extra{
+    margin-top:15px;
+    opacity:0;
+    transform:translateY(10px);
+    transition:0.4s;
+}
+
+.card:hover .extra{
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* ===== MODAL ===== */
+.modal{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.4);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+}
+
+.modal.active{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.modal-box{
+    background:rgba(255,255,255,0.2);
+    backdrop-filter:blur(25px);
+    padding:30px;
+    border-radius:20px;
+    width:300px;
+    text-align:center;
+    transform:scale(0.8) translateY(20px);
+    transition:0.4s;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
+
+.modal.active .modal-box{
+    transform:scale(1) translateY(0);
+}
+
+.modal input{
+    width:100%;
+    padding:10px;
+    margin:15px 0;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+.modal button{
+    padding:10px 20px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGO NỀN -->
+<img src="logodai.jpg" class="bg-logo">
+
+<div class="sidebar">
+
+    <div class="logo-box">
+        <img src="lilium.jpg">
+    </div>
+
+    <a href="#" class="active">🏠 Trang chủ</a>
+    <a href="nhapkho.html" class="admin-only">📥 Nhập kho</a>
+    <a href="xuatkho.html" class="admin-only">📤 Xuất kho</a>
+    <a href="tonkho.html">📊 Tồn kho</a>
+
+    <!-- Nút này sẽ tự động đổi thành Đăng xuất khi đã login -->
+    <a href="#" id="authBtn" style="margin-top:20px;color:#ef4444">
+        🔑 Đăng nhập Admin
+    </a>
+</div>
+
+<div class="content">
+    <div class="card">
+        <h1>Lilium Warehouse</h1>
+        <p>Hệ thống quản lý kho mỹ phẩm</p>
+
+        <div class="extra">
+            Quản lý thông minh • Tối ưu tồn kho • Tăng doanh thu
+        </div>
+    </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal" id="loginModal">
+    <div class="modal-box">
+        <h3>Đăng nhập Admin</h3>
+        <input type="password" id="password" placeholder="Nhập mật khẩu">
+        <button onclick="login()">Đăng nhập</button>
+    </div>
+</div>
+
+<script>
+// ====================== CẬP NHẬT TRẠNG THÁI AUTH ======================
+function checkAuth() {
+    const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+    const authBtn = document.getElementById("authBtn");
+
+    // Ẩn/Hiện menu admin
+    document.querySelectorAll(".admin-only").forEach(link => {
+        link.style.display = isAdmin ? "block" : "none";
+    });
+
+    if (isAdmin) {
+        // Đã đăng nhập → hiển thị nút Đăng xuất
+        authBtn.innerHTML = `🔴 Đăng xuất`;
+        authBtn.style.color = "#ef4444";
+        authBtn.onclick = logout;
+    } else {
+        // Chưa đăng nhập → hiển thị nút Đăng nhập
+        authBtn.innerHTML = `🔑 Đăng nhập`;
+        authBtn.style.color = "#ef4444";
+        authBtn.onclick = openLoginModal;
+    }
+}
+
+// Mở modal đăng nhập
+function openLoginModal() {
+    document.getElementById("loginModal").classList.add("active");
+}
+
+// Đăng nhập
+function login() {
+    let pass = document.getElementById("password").value;
+
+    if (pass === "admin123") {
+        sessionStorage.setItem("isAdmin", "true");
+        document.getElementById("loginModal").classList.remove("active");
+        checkAuth();
+        alert("✅ Đăng nhập Admin thành công!");
+    } else {
+        alert("❌ Sai mật khẩu!");
+    }
+}
+
+// Đăng xuất
+function logout() {
+    if (confirm("Bạn có chắc muốn đăng xuất Admin?")) {
+        sessionStorage.removeItem("isAdmin");
+        checkAuth();
+        alert("Đã đăng xuất.");
+    }
+}
+
+// ====================== KHỞI ĐỘNG ======================
+window.onload = () => {
+    checkAuth();
+};
+
+// Đóng modal khi click ngoài
+document.getElementById("loginModal").addEventListener("click", function(e) {
+    if (e.target === this) {
+        this.classList.remove("active");
+    }
+});
+</script>
+
+</body>
+</html>
