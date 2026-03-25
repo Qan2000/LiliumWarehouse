@@ -280,4 +280,203 @@ function hienThi(filter = "") {
         filteredList.sort((a, b) => {
             let valA = Object.values(a)[colIndex] || "";
             let valB = Object.values(b)[colIndex] || "";
-            if (!is
+            if (!isNaN(valA) && !isNaN(valB)) return dir * (parseFloat(valA) - parseFloat(valB));
+            return dir * String(valA).localeCompare(String(valB));
+        });
+    }
+
+    filteredList.forEach((sp) => {
+        const idx = danhSach.findIndex(item => item === sp);
+        let nccNsx = sp.ncc && sp.nsx ? `${sp.ncc} - ${sp.nsx}` : (sp.ncc || sp.nsx || '-');
+
+        bang.innerHTML += `
+            <tr class="reveal">
+                <td>${idx + 1}</td>
+                <td><strong>${sp.mahang}</strong></td>
+                <td><strong>${sp.ten}</strong></td>
+                <td>${nccNsx}</td>
+                <td>${sp.qc || '-'}</td>
+                <td><strong>${parseFloat(sp.soluong).toFixed(3).replace(/\.?0+$/, '')}</strong></td>
+                <td>${sp.shelflife ? sp.shelflife + ' tháng' : '-'}</td>
+                <td>${sp.manufacture || '-'}</td>
+                <td>${sp.retest || '-'}</td>
+                <td>
+                    <button onclick="suaSanPham(${idx})" style="background:#2E6B3F;color:white;margin-right:5px;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;">Sửa</button>
+                    <button onclick="xoaSanPham(${idx})" style="background:#ef4444;color:white;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;">Xóa</button>
+                </td>
+            </tr>`;
+    });
+
+    // Kích hoạt lại hiệu ứng reveal cho các hàng mới
+    setTimeout(() => {
+        document.querySelectorAll('#bang tr.reveal').forEach((el, i) => {
+            setTimeout(() => el.classList.add('visible'), i * 60);
+        });
+    }, 50);
+}
+
+// ====================== THÊM / SỬA ======================
+function themSanPham() {
+    const mahang = document.getElementById("mahang").value.trim().toUpperCase();
+    const ten = document.getElementById("ten").value.trim();
+    const nsx = document.getElementById("nsx").value.trim();
+    const ncc = document.getElementById("ncc").value.trim();
+    const qc = document.getElementById("qc").value.trim();
+    const soluong = parseFloat(document.getElementById("soluong").value);
+
+    if (!mahang || !ten || isNaN(soluong)) {
+        showToast("Vui lòng nhập đầy đủ Mã hàng, Tên sản phẩm và Số lượng!", "#ef4444");
+        return;
+    }
+
+    const sanpham = {
+        mahang, ten, nsx, ncc, qc,
+        soluong,
+        shelflife: document.getElementById("shelflife").value.trim() || null,
+        manufacture: document.getElementById("manufacture").value || null,
+        retest: document.getElementById("retest").value || null
+    };
+
+    if (editIndex >= 0) {
+        // === SỬA ===
+        danhSach[editIndex] = sanpham;
+        showToast("✅ Đã cập nhật sản phẩm thành công!");
+        editIndex = -1;
+    } else {
+        // === THÊM MỚI ===
+        danhSach.push(sanpham);
+        showToast("✅ Đã thêm sản phẩm vào kho!");
+    }
+
+    luuLocal();
+    hienThi(document.getElementById("search").value);   // Cập nhật bảng ngay
+    resetForm();
+}
+
+// ====================== XÓA & SỬA ======================
+function xoaSanPham(index) {
+    if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
+        danhSach.splice(index, 1);
+        luuLocal();
+        hienThi(document.getElementById("search").value);
+        showToast("🗑️ Đã xóa sản phẩm!");
+    }
+}
+
+function suaSanPham(index) {
+    editIndex = index;
+    const sp = danhSach[index];
+
+    document.getElementById("mahang").value = sp.mahang;
+    document.getElementById("ten").value = sp.ten;
+    document.getElementById("nsx").value = sp.nsx || "";
+    document.getElementById("ncc").value = sp.ncc || "";
+    document.getElementById("qc").value = sp.qc || "";
+    document.getElementById("soluong").value = sp.soluong;
+    document.getElementById("shelflife").value = sp.shelflife || "";
+    document.getElementById("manufacture").value = sp.manufacture || "";
+    document.getElementById("retest").value = sp.retest || "";
+
+    showToast("✏️ Đang chỉnh sửa sản phẩm...", "#3b82f6");
+}
+
+function resetForm() {
+    document.getElementById("mahang").value = "";
+    document.getElementById("ten").value = "";
+    document.getElementById("nsx").value = "";
+    document.getElementById("ncc").value = "";
+    document.getElementById("qc").value = "";
+    document.getElementById("soluong").value = "";
+    document.getElementById("shelflife").value = "";
+    document.getElementById("manufacture").value = "";
+    document.getElementById("retest").value = "";
+    editIndex = -1;
+}
+
+function timKiemRealTime() {
+    hienThi(document.getElementById("search").value);
+}
+
+function xuatExcel() {
+    if (danhSach.length === 0) {
+        showToast("Không có dữ liệu để xuất!", "#ef4444");
+        return;
+    }
+    const wb = XLSX.utils.book_new();
+    const wsData = danhSach.map((sp, i) => ({
+        "STT": i + 1,
+        "Mã hàng": sp.mahang,
+        "Tên sản phẩm": sp.ten,
+        "Nhà cung cấp": sp.ncc || "",
+        "Nơi sản xuất": sp.nsx || "",
+        "Quy cách": sp.qc || "",
+        "Số lượng": sp.soluong,
+        "Shelf Life (tháng)": sp.shelflife || "",
+        "Manufacture Date": sp.manufacture || "",
+        "Retest Date": sp.retest || ""
+    }));
+    const ws = XLSX.utils.json_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, "Tồn kho Mỹ phẩm");
+    XLSX.writeFile(wb, `TonKho_MyPham_${new Date().toISOString().slice(0,10)}.xlsx`);
+    showToast("📊 Đã xuất file Excel!");
+}
+
+function sortTable(col) {
+    const key = col.toString();
+    sortDirection = {};
+    sortDirection[key] = (sortDirection[key] === 1) ? -1 : 1;
+    hienThi(document.getElementById("search").value);
+}
+
+function showToast(msg, color = "#1A472A") {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.style.background = color;
+    toast.style.display = "block";
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => { toast.style.display = "none"; toast.style.opacity = "1"; }, 300);
+    }, 2500);
+}
+
+// Hiệu ứng cuộn
+function initScrollReveal() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 70);
+            }
+        });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+}
+
+// Khởi tạo
+window.onload = () => {
+    checkAdmin();
+    hienThi();
+
+    document.getElementById("mahang").addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
+    document.getElementById("search").addEventListener("input", timKiemRealTime);
+
+    document.querySelector('.card').classList.add('reveal');
+    document.querySelector('.form-container').classList.add('reveal');
+    document.querySelector('.search-box').classList.add('reveal');
+    document.querySelector('.table-wrapper').classList.add('reveal');
+
+    initScrollReveal();
+
+    // Hiệu ứng vào trang
+    const card = document.getElementById("mainCard");
+    card.style.opacity = "0";
+    card.style.transform = "scale(0.94) translateY(40px)";
+    setTimeout(() => {
+        card.style.transition = "all 850ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        card.style.opacity = "1";
+        card.style.transform = "scale(1) translateY(0)";
+    }, 50);
+};
+</script>
+</body>
+</html>
