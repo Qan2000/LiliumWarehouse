@@ -292,23 +292,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ====================== DATA REALTIME ======================
+// ================= DATA =================
 let danhSach = [];
-let lichSuXuat = [];
+let sortDirection = {};
 
-// 🔄 Lấy dữ liệu realtime từ Firebase
+// 🔄 REALTIME LOAD
 onSnapshot(collection(db, "transactions"), (snapshot) => {
     let stock = {};
-    lichSuXuat = [];
 
     snapshot.forEach(doc => {
         const data = doc.data();
 
-        // TÍNH TỒN
         if (!stock[data.mahang]) {
             stock[data.mahang] = {
                 mahang: data.mahang,
                 ten: data.ten,
+                nsx: data.nsx || "",
+                ncc: data.ncc || "",
+                qc: data.qc || "",
                 soluong: 0
             };
         }
@@ -317,111 +318,96 @@ onSnapshot(collection(db, "transactions"), (snapshot) => {
             stock[data.mahang].soluong += data.soluong;
         } else {
             stock[data.mahang].soluong -= data.soluong;
-            lichSuXuat.push(data);
         }
     });
 
     danhSach = Object.values(stock);
-    hienThiLichSuXuat();
+    hienThi(document.getElementById("search").value);
 });
 
-// ====================== TOAST ======================
-window.showToast = function(msg, color = "#22c55e") {
-    let t = document.getElementById("toast");
-    t.textContent = msg;
-    t.style.background = color;
-    t.style.display = "block";
-    setTimeout(() => t.style.display = "none", 2800);
-};
+// ================= HIỂN THỊ =================
+function hienThi(filter = "") {
+    const bang = document.getElementById("bang");
+    bang.innerHTML = "";
 
-// ====================== GỢI Ý ======================
-window.goiYSanPham = function() {
-    let input = document.getElementById("inputSearch").value.trim().toUpperCase();
-    let box = document.getElementById("suggestions");
-    box.innerHTML = "";
-
-    if (!input) return;
-
-    let ketQua = danhSach.filter(sp => 
-        sp.mahang.includes(input) || sp.ten.toUpperCase().includes(input)
-    );
-
-    ketQua.forEach(sp => {
-        let div = document.createElement("div");
-        div.innerHTML = `<strong>${sp.mahang}</strong> — ${sp.ten}`;
-        div.onclick = () => {
-            document.getElementById("inputSearch").value = sp.mahang;
-            hienThiThongTinSanPham(sp);
-            box.innerHTML = "";
-        };
-        box.appendChild(div);
+    let list = danhSach.filter(sp => {
+        const txt = (sp.mahang + " " + sp.ten + " " + sp.nsx + " " + sp.ncc).toLowerCase();
+        return txt.includes(filter.toLowerCase());
     });
-};
 
-// ====================== HIỂN THỊ ======================
-function hienThiThongTinSanPham(sp) {
-    const info = document.getElementById("productInfo");
+    list.forEach((sp, i) => {
+        const nccNsx = sp.ncc && sp.nsx ? `${sp.ncc} - ${sp.nsx}` : (sp.ncc || sp.nsx || '-');
 
-    document.getElementById("infoTen").textContent = sp.ten;
-    document.getElementById("infoMahang").innerHTML = `<strong>Mã hàng:</strong> ${sp.mahang}`;
-    document.getElementById("infoTon").innerHTML = `<strong>Tồn kho:</strong> ${sp.soluong}`;
-
-    info.style.display = "block";
+        bang.innerHTML += `
+        <tr>
+            <td>${i+1}</td>
+            <td><strong>${sp.mahang}</strong></td>
+            <td><strong>${sp.ten}</strong></td>
+            <td>${nccNsx}</td>
+            <td>${sp.qc || '-'}</td>
+            <td><strong>${sp.soluong}</strong></td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+        </tr>`;
+    });
 }
 
-// ====================== XUẤT KHO ======================
-window.xuatKho = async function() {
-    let input = document.getElementById("inputSearch").value.trim().toUpperCase();
-    let sl = parseFloat(document.getElementById("soluong").value);
+// ================= THÊM SẢN PHẨM =================
+window.themSanPham = async function() {
+    const mahang = document.getElementById("mahang").value.trim().toUpperCase();
+    const ten = document.getElementById("ten").value.trim();
+    const soluong = parseFloat(document.getElementById("soluong").value);
 
-    if (!input || !sl || sl <= 0) {
-        showToast("Nhập dữ liệu hợp lệ!", "#ef4444");
+    if (!mahang || !ten || !soluong) {
+        showToast("Nhập thiếu dữ liệu!", "#ef4444");
         return;
     }
 
-    let sp = danhSach.find(item => item.mahang === input);
-
-    if (!sp) {
-        showToast("Không tìm thấy sản phẩm!", "#ef4444");
-        return;
-    }
-
-    if (sp.soluong < sl) {
-        showToast(`Không đủ hàng! Còn ${sp.soluong}`, "#ef4444");
-        return;
-    }
-
-    // 🔥 GHI FIREBASE
     await addDoc(collection(db, "transactions"), {
-        mahang: sp.mahang,
-        ten: sp.ten,
-        soluong: sl,
-        type: "export",
+        mahang,
+        ten,
+        soluong,
+        type: "import",
+        nsx: document.getElementById("nsx").value,
+        ncc: document.getElementById("ncc").value,
+        qc: document.getElementById("qc").value,
         createdAt: new Date()
     });
 
-    showToast(`Đã xuất ${sl} ${sp.ten}`, "#22c55e");
-
-    document.getElementById("inputSearch").value = "";
-    document.getElementById("soluong").value = "";
-    document.getElementById("productInfo").style.display = "none";
+    showToast("✅ Đã nhập kho!");
+    resetForm();
 };
 
-// ====================== LỊCH SỬ ======================
-function hienThiLichSuXuat() {
-    let box = document.getElementById("lichsu");
-    box.innerHTML = "";
+// ================= RESET =================
+window.resetForm = function() {
+    document.querySelectorAll("input").forEach(i => i.value = "");
+};
 
-    lichSuXuat.reverse().forEach(item => {
-        let div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-            <strong>${item.mahang} — ${item.ten}</strong><br>
-            <span style="color:red;">-${item.soluong}</span>
-        `;
-        box.appendChild(div);
-    });
-}
+// ================= SEARCH =================
+document.getElementById("search").addEventListener("input", () => {
+    hienThi(document.getElementById("search").value);
+});
+
+// ================= EXCEL =================
+window.xuatExcel = function() {
+    if (danhSach.length === 0) return;
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(danhSach);
+    XLSX.utils.book_append_sheet(wb, ws, "TonKho");
+    XLSX.writeFile(wb, "tonkho.xlsx");
+};
+
+// ================= TOAST =================
+window.showToast = function(msg, color="#1A472A") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.background = color;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2500);
+};
 </script>
 
 
